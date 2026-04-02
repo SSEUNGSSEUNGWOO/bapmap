@@ -11,8 +11,9 @@ export default async function SpotsPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">All Spots</h1>
-      <p className="text-gray-400 mb-10">Every place on here is somewhere we've actually been.</p>
+      <p className="text-xs font-bold tracking-[0.2em] uppercase mb-2" style={{ color: "var(--orange)" }}>The list</p>
+      <h1 className="font-display mb-3" style={{ fontSize: "clamp(2.5rem,6vw,4rem)", color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>Where Koreans Eat</h1>
+      <p className="mb-10" style={{ color: "var(--muted)" }}>No tourist traps. No sponsored picks. Just the real thing.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {spots?.map((spot) => {
