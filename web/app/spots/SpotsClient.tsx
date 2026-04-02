@@ -49,9 +49,12 @@ function SpotCardImage({ images, name }: { images: string[]; name: string }) {
   );
 }
 
+type SortOption = "newest" | "rating" | "name";
+
 export default function SpotsClient({ spots }: { spots: Spot[] }) {
   const [query, setQuery] = useState("");
   const [activeRegion, setActiveRegion] = useState("All");
+  const [sort, setSort] = useState<SortOption>("newest");
 
   const regions = useMemo(() => {
     const set = new Set(spots.map((s) => s.region || s.city).filter(Boolean));
@@ -59,7 +62,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
   }, [spots]);
 
   const filtered = useMemo(() => {
-    return spots.filter((s) => {
+    const result = spots.filter((s) => {
       const matchRegion = activeRegion === "All" || (s.region || s.city) === activeRegion;
       const q = query.toLowerCase();
       const matchQuery = !q ||
@@ -68,7 +71,11 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
         (s.category || "").toLowerCase().includes(q);
       return matchRegion && matchQuery;
     });
-  }, [spots, query, activeRegion]);
+
+    if (sort === "rating") return [...result].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    if (sort === "name") return [...result].sort((a, b) => (a.english_name || a.name).localeCompare(b.english_name || b.name));
+    return result;
+  }, [spots, query, activeRegion, sort]);
 
   return (
     <div>
@@ -94,6 +101,24 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
           {query && (
             <button onClick={() => setQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--muted)" }}>✕</button>
           )}
+        </div>
+
+        {/* 정렬 */}
+        <div className="flex gap-2">
+          {(["newest", "rating", "name"] as SortOption[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => setSort(s)}
+              className="text-xs font-semibold px-4 py-2 rounded-full transition-all"
+              style={{
+                background: sort === s ? "var(--ink)" : "var(--surface)",
+                color: sort === s ? "#fff" : "var(--muted)",
+                border: `1px solid ${sort === s ? "var(--ink)" : "var(--border)"}`,
+              }}
+            >
+              {s === "newest" ? "Newest" : s === "rating" ? "Top Rated" : "A–Z"}
+            </button>
+          ))}
         </div>
 
         {/* 지역 필터 */}
