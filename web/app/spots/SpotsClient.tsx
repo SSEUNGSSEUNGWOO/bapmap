@@ -83,8 +83,8 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
           {filtered.map((spot) => {
             const slug = (spot.english_name || spot.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
             return (
-              <Link key={spot.id} href={`/spots/${slug}`} className="group block no-underline">
-                <div className="bg-white rounded-2xl overflow-hidden border border-[var(--border)] group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-200">
+              <Link key={spot.id} href={`/spots/${slug}`} className="group block no-underline h-full">
+                <div className="bg-white rounded-2xl overflow-hidden border border-[var(--border)] group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-200 h-full flex flex-col">
                   {spot.image_url ? (
                     <div className="h-48 overflow-hidden bg-gray-100">
                       <img
@@ -98,11 +98,11 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                       <span style={{ fontSize: "2.5rem" }}>🍜</span>
                     </div>
                   )}
-                  <div className="p-4 flex flex-col" style={{ height: "130px" }}>
+                  <div className="p-4 flex flex-col flex-1">
                     <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
                       {spot.region || spot.city}
                     </div>
-                    <div className="font-semibold text-sm mb-auto" style={{ color: "var(--ink)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    <div className="font-semibold text-sm mb-auto" style={{ color: "var(--ink)" }}>
                       {spot.english_name || spot.name}
                     </div>
                     <div className="flex items-center justify-between mt-3">
@@ -117,7 +117,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                       )}
                     </div>
                     {spot.subway && (
-                      <div className="text-xs mt-1.5 truncate" style={{ color: "var(--muted)" }}>🚇 {spot.subway}</div>
+                      <div className="text-xs mt-1.5" style={{ color: "var(--muted)" }}>🚇 {spot.subway}</div>
                     )}
                   </div>
                 </div>
