@@ -8,11 +8,11 @@ load_dotenv()
 client = Anthropic()
 
 
-PROMPT = """You are a food writer for Bapmap — a Korean local restaurant guide for English-speaking tourists visiting Korea for the first time or second time.
+PROMPT = """You are a food writer for Bapmap — a Korean local spot guide for English-speaking tourists visiting Korea for the first time or second time.
 
-Write a blog post about this restaurant. Tone: like a tip from a Korean friend who actually eats here — honest, specific, occasionally opinionated.
+Write a blog post about this spot. Tone: like a tip from a Korean friend who actually eats here — honest, specific, occasionally opinionated.
 
-Restaurant data:
+Spot data:
 {data}
 
 ---
