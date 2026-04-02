@@ -9,6 +9,12 @@ sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
 from pipeline.enrich import search_place, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components
 
 load_dotenv()
+
+# Streamlit Cloud secrets 우선, 없으면 .env
+for key in ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "GOOGLE_PLACES_API_KEY", "ANTHROPIC_API_KEY", "WORDPRESS_URL", "WORDPRESS_USER", "WORDPRESS_APP_PASSWORD"]:
+    if key in st.secrets:
+        os.environ[key] = st.secrets[key]
+
 sb = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
 
 PRICE_MAP = {
