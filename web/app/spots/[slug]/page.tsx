@@ -5,6 +5,14 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371;
+  const p = Math.PI / 180;
+  const a = Math.sin((lat2 - lat1) * p / 2) ** 2 +
+    Math.cos(lat1 * p) * Math.cos(lat2 * p) * Math.sin((lng2 - lng1) * p / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 async function getSpot(slug: string) {
   const { data: spots } = await supabase
     .from("spots")
@@ -14,6 +22,22 @@ async function getSpot(slug: string) {
     const s_slug = (s.english_name || s.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
     return s_slug === slug;
   }) ?? null;
+}
+
+async function getNearbySpots(spot: { id: string; lat: number; lng: number }) {
+  const { data: spots } = await supabase
+    .from("spots")
+    .select("id, name, english_name, city, region, image_url, rating, category")
+    .eq("status", "업로드완료")
+    .neq("id", spot.id);
+
+  if (!spots || !spot.lat || !spot.lng) return [];
+
+  return spots
+    .filter((s) => s.lat && s.lng)
+    .map((s) => ({ ...s, dist: haversineKm(spot.lat, spot.lng, s.lat, s.lng) }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 3);
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -47,6 +71,8 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const spot = await getSpot(slug);
   if (!spot) notFound();
+
+  const nearby = await getNearbySpots({ id: spot.id, lat: spot.lat, lng: spot.lng });
 
   const images: string[] = Array.isArray(spot.image_urls) && spot.image_urls.length > 0
     ? spot.image_urls
@@ -244,6 +270,39 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
           </a>
         )}
       </div>
+
+      {/* Nearby Spots */}
+      {nearby.length > 0 && (
+        <div className="max-w-2xl mx-auto px-6 pb-16">
+          <div className="border-t border-[var(--border)] mb-8" />
+          <p className="text-xs font-bold tracking-[0.2em] uppercase mb-6" style={{ color: "var(--orange)" }}>Nearby Spots</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {nearby.map((s: any) => {
+              const nearbySlug = (s.english_name || s.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
+              return (
+                <Link key={s.id} href={`/spots/${nearbySlug}`} className="group block no-underline">
+                  <div className="rounded-xl overflow-hidden border border-[var(--border)] group-hover:shadow-lg group-hover:-translate-y-0.5 transition-all duration-200">
+                    {s.image_url ? (
+                      <img src={s.image_url} alt={s.english_name || s.name} className="w-full object-cover" style={{ height: "100px" }} />
+                    ) : (
+                      <div className="flex items-center justify-center" style={{ height: "100px", background: "var(--surface)" }}>
+                        <span style={{ fontSize: "1.8rem" }}>🍜</span>
+                      </div>
+                    )}
+                    <div className="p-3">
+                      <div className="text-[9px] font-bold tracking-widest uppercase mb-0.5" style={{ color: "var(--orange)" }}>
+                        {s.region || s.city}
+                      </div>
+                      <div className="font-semibold text-xs mb-1" style={{ color: "var(--ink)" }}>{s.english_name || s.name}</div>
+                      <div className="text-[11px]" style={{ color: "var(--muted)" }}>★ {s.rating} · {s.dist < 1 ? `${Math.round(s.dist * 1000)}m` : `${s.dist.toFixed(1)}km`}</div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
