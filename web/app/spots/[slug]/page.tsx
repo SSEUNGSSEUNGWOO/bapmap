@@ -210,6 +210,22 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
           </div>
         )}
 
+        {/* 구글 리뷰 */}
+        {Array.isArray(spot.google_reviews) && spot.google_reviews.length > 0 && (
+          <div className="mb-8">
+            <div className="border-t border-[var(--border)] mb-8" />
+            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-4" style={{ color: "var(--orange)" }}>What People Are Saying</p>
+            <div className="space-y-4">
+              {spot.google_reviews.slice(0, 3).map((review: string, i: number) => (
+                <div key={i} className="p-4 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                  <p className="text-sm leading-relaxed" style={{ color: "var(--muted)" }}>"{review}"</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs mt-3" style={{ color: "var(--border)" }}>— Google Reviews</p>
+          </div>
+        )}
+
         {/* 구글맵 버튼 */}
         {spot.google_maps_url && (
           <a
