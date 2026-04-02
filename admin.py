@@ -89,7 +89,7 @@ with tab1:
 
         r2c1, r2c2, r2c3 = st.columns(3)
         with r2c1:
-            category = st.text_input("카테고리", value=category, key="edit_category")
+            category = st.text_input("카테고리 (영어)", value=category, key="edit_category", help="예: Ramen, Korean BBQ, Tteokbokki, Wine Bar")
         with r2c2:
             price_level = st.text_input("가격대", value=price_level, key="edit_price_level")
         with r2c3:

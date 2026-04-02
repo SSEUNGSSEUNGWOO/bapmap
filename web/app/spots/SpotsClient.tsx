@@ -98,10 +98,17 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                       <span style={{ fontSize: "2.5rem" }}>🍜</span>
                     </div>
                   )}
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "var(--orange)" }}>
-                        {spot.region || spot.city}
+                  <div className="p-4 flex flex-col" style={{ minHeight: "110px" }}>
+                    <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
+                      {spot.region || spot.city}
+                    </div>
+                    <div className="font-semibold text-sm mb-auto" style={{ color: "var(--ink)" }}>
+                      {spot.english_name || spot.name}
+                    </div>
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs" style={{ color: "var(--muted)" }}>★ {spot.rating}</span>
+                        {spot.price_level && <span className="text-xs" style={{ color: "var(--muted)" }}>{spot.price_level}</span>}
                       </div>
                       {spot.category && (
                         <div className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}>
@@ -109,15 +116,8 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                         </div>
                       )}
                     </div>
-                    <div className="font-semibold text-sm mb-2" style={{ color: "var(--ink)" }}>
-                      {spot.english_name || spot.name}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs" style={{ color: "var(--muted)" }}>★ {spot.rating}</span>
-                      {spot.price_level && <span className="text-xs font-semibold" style={{ color: "var(--muted)" }}>{spot.price_level}</span>}
-                    </div>
                     {spot.subway && (
-                      <div className="text-xs mt-2" style={{ color: "var(--muted)" }}>🚇 {spot.subway}</div>
+                      <div className="text-xs mt-1.5" style={{ color: "var(--muted)" }}>🚇 {spot.subway}</div>
                     )}
                   </div>
                 </div>
