@@ -113,12 +113,31 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
         {/* 본문 글 */}
         {spot.content ? (
-          <div className="mb-10" style={{ color: "var(--ink)" }}>
-            {spot.content.split("\n\n").map((para: string, i: number) => (
-              <p key={i} className="mb-5 leading-relaxed" style={{ fontSize: "1.05rem", lineHeight: "1.85" }}>
-                {para}
-              </p>
-            ))}
+          <div className="mb-10">
+            {spot.content.split("\n\n").map((block: string, i: number) => {
+              const lines = block.split("\n").filter((l: string) => l.trim());
+              // 소제목 감지: 한 줄이고 30자 이하이며 문장이 아닌 경우
+              const isHeading = lines.length === 1 && lines[0].length <= 40 && !lines[0].endsWith(".");
+              if (isHeading) {
+                return (
+                  <h2 key={i} className="font-bold mt-10 mb-3" style={{ fontSize: "1.1rem", color: "var(--ink)" }}>
+                    {lines[0]}
+                  </h2>
+                );
+              }
+              return (
+                <p key={i} className="mb-6" style={{
+                  fontSize: i === 0 ? "1.15rem" : "1rem",
+                  lineHeight: "1.9",
+                  color: i === 0 ? "var(--ink)" : "var(--muted)",
+                  fontWeight: i === 0 ? 400 : 400,
+                }}>
+                  {lines.map((line: string, j: number) => (
+                    <span key={j}>{line}{j < lines.length - 1 && <br />}</span>
+                  ))}
+                </p>
+              );
+            })}
           </div>
         ) : (
           <p className="mb-10" style={{ color: "var(--muted)" }}>Content coming soon.</p>
