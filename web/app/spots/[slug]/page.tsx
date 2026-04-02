@@ -27,7 +27,7 @@ async function getSpot(slug: string) {
 async function getNearbySpots(spot: { id: string; lat: number; lng: number }) {
   const { data: spots } = await supabase
     .from("spots")
-    .select("id, name, english_name, city, region, image_url, rating, category")
+    .select("id, name, english_name, city, region, image_url, rating, category, lat, lng")
     .eq("status", "업로드완료")
     .neq("id", spot.id);
 
