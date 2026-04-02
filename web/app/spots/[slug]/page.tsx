@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 async function getSpot(slug: string) {
   const { data: spots } = await supabase
@@ -148,6 +149,7 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
         {spot.content ? (
           <div className="mb-10 prose-content">
             <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
               components={{
                 h1: ({ children }) => (
                   <h1 className="font-display mb-4" style={{ fontSize: "1.5rem", color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2 }}>{children}</h1>
