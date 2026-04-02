@@ -87,9 +87,26 @@ with tab1:
         with r1c3:
             region = st.text_input("지역 (region)", value=region, key="edit_region")
 
+        CATEGORIES = [
+            "Bakery", "Bar", "Buckwheat Noodles", "Burger", "Cafe", "Chinese", "Chicken",
+            "Chicken Feet", "Dak Galbi", "French", "Galbi", "Gopchang", "Hangover Soup",
+            "Italian", "Japanese", "Kimbap", "Korean", "Korean BBQ", "Korean Chicken Soup",
+            "Korean Soup", "Lamb", "Lamb Skewers", "Makchang", "Makgeolli Bar", "Mulhoe",
+            "Noodles", "Pizza", "Pork Bone Soup", "Ramen", "Raw Fish", "Seafood",
+            "Soft Tofu", "Spicy Squid", "Sundae", "Sundae Soup", "Teppanyaki",
+            "Thai", "Tofu", "Tonkatsu", "Tteokbokki", "Vietnamese", "Western", "Wine Bar",
+        ]
+
         r2c1, r2c2, r2c3 = st.columns(3)
         with r2c1:
-            category = st.text_input("카테고리 (영어)", value=category, key="edit_category", help="예: Ramen, Korean BBQ, Tteokbokki, Wine Bar")
+            category_options = ["직접 입력"] + CATEGORIES
+            cat_select = st.selectbox("카테고리", category_options,
+                                      index=category_options.index(category) if category in category_options else 0,
+                                      key="edit_category_select")
+            if cat_select == "직접 입력":
+                category = st.text_input("카테고리 직접 입력 (영어)", value=category, key="edit_category")
+            else:
+                category = cat_select
         with r2c2:
             price_level = st.text_input("가격대", value=price_level, key="edit_price_level")
         with r2c3:
