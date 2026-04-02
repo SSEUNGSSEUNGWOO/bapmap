@@ -1,19 +1,48 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
-export default async function SpotPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-
+async function getSpot(slug: string) {
   const { data: spots } = await supabase
     .from("spots")
     .select("*")
     .eq("status", "업로드완료");
-
-  const spot = spots?.find((s) => {
+  return spots?.find((s) => {
     const s_slug = (s.english_name || s.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
     return s_slug === slug;
-  });
+  }) ?? null;
+}
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const spot = await getSpot(slug);
+  if (!spot) return {};
+
+  const title = `${spot.english_name || spot.name} — Bapmap`;
+  const description = `${spot.english_name || spot.name} in ${spot.region || spot.city}, Korea. ★${spot.rating} · ${spot.price_level || "Local pick"} · ${spot.subway || ""}`.trim();
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://bapmap.com/spots/${slug}`,
+      images: spot.image_url ? [{ url: spot.image_url, width: 800, height: 600, alt: spot.english_name }] : [],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: spot.image_url ? [spot.image_url] : [],
+    },
+  };
+}
+
+export default async function SpotPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const spot = await getSpot(slug);
   if (!spot) notFound();
 
   return (
