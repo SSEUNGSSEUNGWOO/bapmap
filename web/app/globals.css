@@ -53,3 +53,4 @@ body { font-family: var(--font-source), sans-serif; }
 .delay-1 { animation-delay: 0.1s; opacity: 0; }
 .delay-2 { animation-delay: 0.25s; opacity: 0; }
 .delay-3 { animation-delay: 0.4s; opacity: 0; }
+.delay-4 { animation-delay: 0.55s; opacity: 0; }
