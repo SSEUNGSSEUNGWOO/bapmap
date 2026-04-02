@@ -78,6 +78,7 @@ with tab1:
 
         st.divider()
         memo = st.text_area("메모 (선택)", placeholder="직접 가본 느낌, 추천 메뉴, 팁 등 자유롭게")
+        uploaded_files = st.file_uploader("내 사진 업로드 (최대 2장, 없으면 Google 사진 사용)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
         col_a, col_b = st.columns(2)
         with col_a:
@@ -87,6 +88,18 @@ with tab1:
                     korean_address = get_korean_address(name)
                     photo_name = photos[0].get("name", "") if photos else ""
                     image_urls = [get_photo_url(p["name"]) for p in photos[:3] if p.get("name")]
+
+                    # 업로드한 사진이 있으면 Supabase Storage에 저장
+                    if uploaded_files:
+                        slug = english_name.lower().replace(" ", "-")
+                        uploaded_urls = []
+                        for i, f in enumerate(uploaded_files[:2]):
+                            path = f"{slug}-upload-{i+1}.jpg"
+                            sb.storage.from_("restaurant-images").upload(path, f.read(), {"content-type": "image/jpeg", "upsert": "true"})
+                            pub_url = sb.storage.from_("restaurant-images").get_public_url(path)
+                            uploaded_urls.append(pub_url)
+                        # 대표 사진은 Google, 나머지는 업로드한 사진으로 교체
+                        image_urls = image_urls[:1] + uploaded_urls
                     raw_reviews = place.get("reviews", [])
                     reviews = [rv["text"]["text"] for rv in raw_reviews if rv.get("text", {}).get("languageCode") == "en"][:3]
 
