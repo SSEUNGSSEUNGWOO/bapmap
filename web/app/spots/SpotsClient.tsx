@@ -50,11 +50,13 @@ function SpotCardImage({ images, name }: { images: string[]; name: string }) {
 }
 
 type SortOption = "newest" | "rating" | "name";
+const PAGE_SIZE = 9;
 
 export default function SpotsClient({ spots }: { spots: Spot[] }) {
   const [query, setQuery] = useState("");
   const [activeRegion, setActiveRegion] = useState("All");
   const [sort, setSort] = useState<SortOption>("newest");
+  const [page, setPage] = useState(1);
 
   const regions = useMemo(() => {
     const set = new Set(spots.map((s) => s.region || s.city).filter(Boolean));
@@ -77,6 +79,14 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
     return result;
   }, [spots, query, activeRegion, sort]);
 
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const handleFilterChange = (fn: () => void) => {
+    fn();
+    setPage(1);
+  };
+
   return (
     <div>
       {/* 검색 + 필터 */}
@@ -90,7 +100,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
             type="text"
             placeholder="Search spots, neighborhoods..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleFilterChange(() => setQuery(e.target.value))}
             className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none"
             style={{
               background: "var(--surface)",
@@ -99,7 +109,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
             }}
           />
           {query && (
-            <button onClick={() => setQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--muted)" }}>✕</button>
+            <button onClick={() => handleFilterChange(() => setQuery(""))} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--muted)" }}>✕</button>
           )}
         </div>
 
@@ -108,7 +118,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
           {(["newest", "rating", "name"] as SortOption[]).map((s) => (
             <button
               key={s}
-              onClick={() => setSort(s)}
+              onClick={() => handleFilterChange(() => setSort(s))}
               className="text-xs font-semibold px-4 py-2 rounded-full transition-all"
               style={{
                 background: sort === s ? "var(--ink)" : "var(--surface)",
@@ -126,7 +136,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
           {regions.map((r) => (
             <button
               key={r}
-              onClick={() => setActiveRegion(r)}
+              onClick={() => handleFilterChange(() => setActiveRegion(r))}
               className="text-xs font-semibold px-4 py-2 rounded-full transition-all"
               style={{
                 background: activeRegion === r ? "var(--orange)" : "var(--surface)",
@@ -150,7 +160,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
       {/* 카드 그리드 */}
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {filtered.map((spot) => {
+          {paginated.map((spot) => {
             const slug = (spot.english_name || spot.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
             return (
               <Link key={spot.id} href={`/spots/${slug}`} className="group block no-underline h-full">
@@ -194,6 +204,42 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
           <div className="text-4xl mb-4">🍽️</div>
           <p className="font-semibold mb-1" style={{ color: "var(--ink)" }}>No spots found</p>
           <p className="text-sm" style={{ color: "var(--muted)" }}>Try a different search or filter</p>
+        </div>
+      )}
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-10">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 rounded-full text-sm font-semibold transition-all disabled:opacity-30"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--ink)" }}
+          >
+            ←
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              className="w-9 h-9 rounded-full text-sm font-semibold transition-all"
+              style={{
+                background: page === p ? "var(--orange)" : "var(--surface)",
+                color: page === p ? "#fff" : "var(--muted)",
+                border: `1px solid ${page === p ? "var(--orange)" : "var(--border)"}`,
+              }}
+            >
+              {p}
+            </button>
+          ))}
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-4 py-2 rounded-full text-sm font-semibold transition-all disabled:opacity-30"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--ink)" }}
+          >
+            →
+          </button>
         </div>
       )}
     </div>
