@@ -41,17 +41,22 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
       if (!spot.lat || !spot.lng) return;
 
       const el = document.createElement("div");
-      el.style.cssText = `
+      el.style.cssText = "width: 28px; height: 28px; cursor: pointer;";
+
+      const inner = document.createElement("div");
+      inner.style.cssText = `
         width: 28px; height: 28px; border-radius: 50%;
         background: #F5A623; border: 2px solid #fff;
         box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        cursor: pointer; transition: transform 0.15s;
+        transition: transform 0.15s;
         display: flex; align-items: center; justify-content: center;
         font-size: 12px;
       `;
-      el.innerHTML = "🍽";
-      el.addEventListener("mouseenter", () => { el.style.transform = "scale(1.3)"; });
-      el.addEventListener("mouseleave", () => { el.style.transform = "scale(1)"; });
+      inner.innerHTML = "🍽";
+      el.appendChild(inner);
+
+      el.addEventListener("mouseenter", () => { inner.style.transform = "scale(1.3)"; });
+      el.addEventListener("mouseleave", () => { inner.style.transform = "scale(1)"; });
       el.addEventListener("click", () => setSelected(spot));
 
       new mapboxgl.Marker(el)
