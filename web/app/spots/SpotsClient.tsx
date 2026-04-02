@@ -98,7 +98,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                       <span style={{ fontSize: "2.5rem" }}>🍜</span>
                     </div>
                   )}
-                  <div className="p-4 flex flex-col" style={{ minHeight: "110px" }}>
+                  <div className="p-4 flex flex-col" style={{ height: "130px" }}>
                     <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
                       {spot.region || spot.city}
                     </div>
@@ -117,7 +117,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                       )}
                     </div>
                     {spot.subway && (
-                      <div className="text-xs mt-1.5" style={{ color: "var(--muted)" }}>🚇 {spot.subway}</div>
+                      <div className="text-xs mt-1.5 truncate" style={{ color: "var(--muted)" }}>🚇 {spot.subway}</div>
                     )}
                   </div>
                 </div>
