@@ -128,7 +128,7 @@ with tab1:
                         "memo": memo,
                         "status": "메모완료" if memo.strip() else "메모필요",
                     }
-                    sb.table("restaurants").insert(data).execute()
+                    sb.table("spots").insert(data).execute()
                     del st.session_state["found_place"]
                     del st.session_state["found_name"]
                     st.success(f"✅ {name} 추가 완료!")
@@ -144,7 +144,7 @@ with tab2:
 
     status_filter = st.selectbox("상태 필터", ["전체", "메모필요", "메모완료", "업로드완료"])
 
-    res = sb.table("restaurants").select("id, name, english_name, city, status, memo, rating").order("created_at", desc=True).execute()
+    res = sb.table("spots").select("id, name, english_name, city, status, memo, rating").order("created_at", desc=True).execute()
     restaurants = res.data
 
     if status_filter != "전체":
@@ -159,6 +159,6 @@ with tab2:
                                   index=["메모필요", "메모완료", "업로드완료"].index(r.get("status", "메모필요")),
                                   key=f"status_{r['id']}")
             if st.button("저장", key=f"save_{r['id']}"):
-                sb.table("restaurants").update({"memo": memo, "status": status}).eq("id", r["id"]).execute()
+                sb.table("spots").update({"memo": memo, "status": status}).eq("id", r["id"]).execute()
                 st.success("저장됨!")
                 st.rerun()

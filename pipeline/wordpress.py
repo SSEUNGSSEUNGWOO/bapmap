@@ -102,9 +102,9 @@ if __name__ == "__main__":
 
     name = sys.argv[1] if len(sys.argv) > 1 else None
     if name:
-        res = sb.table("restaurants").select("*").eq("name", name).limit(1).execute()
+        res = sb.table("spots").select("*").eq("name", name).limit(1).execute()
     else:
-        res = sb.table("restaurants").select("*").eq("status", "메모완료").limit(1).execute()
+        res = sb.table("spots").select("*").eq("status", "메모완료").limit(1).execute()
 
     if not res.data:
         print("대상 없음")
@@ -123,7 +123,7 @@ if __name__ == "__main__":
         print(f"완료: {post_url}")
         print(f"편집: {WP_URL}/wp-admin/post.php?post={result['id']}&action=edit")
 
-        sb.table("restaurants").update({
+        sb.table("spots").update({
             "status": "업로드완료",
             "wp_post_id": result["id"],
             "wp_url": post_url,
