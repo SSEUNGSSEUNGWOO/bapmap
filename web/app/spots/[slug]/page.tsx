@@ -114,13 +114,33 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
         {/* 본문 글 */}
         {spot.content ? (
           <div className="mb-10">
-            {spot.content.split("\n\n").map((block: string, i: number) => {
+            {spot.content.split("\n\n").flatMap((block: string, i: number) => {
               const lines = block.split("\n").filter((l: string) => l.trim());
-              // 소제목 감지: 한 줄이고 30자 이하이며 문장이 아닌 경우
-              const isHeading = lines.length === 1 && lines[0].length <= 40 && !lines[0].endsWith(".");
-              if (isHeading) {
-                return (
-                  <h2 key={i} className="font-bold mt-10 mb-4 pl-4" style={{
+              const isLineHeading = (line: string) => line.length <= 40 && !line.endsWith(".") && !line.endsWith(",");
+
+              // 첫 줄이 소제목이고 나머지 줄이 있는 경우 → 소제목 + 문단으로 분리
+              if (lines.length > 1 && isLineHeading(lines[0])) {
+                return [
+                  <h2 key={`h-${i}`} className="font-bold mt-10 mb-4 pl-4" style={{
+                    fontSize: "1.05rem",
+                    color: "var(--ink)",
+                    borderLeft: "3px solid var(--orange)",
+                    letterSpacing: "-0.01em",
+                  }}>
+                    {lines[0]}
+                  </h2>,
+                  <p key={`p-${i}`} className="mb-6" style={{ fontSize: "1rem", lineHeight: "1.9", color: "var(--muted)" }}>
+                    {lines.slice(1).map((line: string, j: number) => (
+                      <span key={j}>{line}{j < lines.length - 2 && <br />}</span>
+                    ))}
+                  </p>
+                ];
+              }
+
+              // 단독 소제목
+              if (lines.length === 1 && isLineHeading(lines[0])) {
+                return [
+                  <h2 key={`h-${i}`} className="font-bold mt-10 mb-4 pl-4" style={{
                     fontSize: "1.05rem",
                     color: "var(--ink)",
                     borderLeft: "3px solid var(--orange)",
@@ -128,20 +148,21 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                   }}>
                     {lines[0]}
                   </h2>
-                );
+                ];
               }
-              return (
-                <p key={i} className="mb-6" style={{
+
+              // 일반 문단
+              return [
+                <p key={`p-${i}`} className="mb-6" style={{
                   fontSize: i === 0 ? "1.15rem" : "1rem",
                   lineHeight: "1.9",
                   color: i === 0 ? "var(--ink)" : "var(--muted)",
-                  fontWeight: i === 0 ? 400 : 400,
                 }}>
                   {lines.map((line: string, j: number) => (
                     <span key={j}>{line}{j < lines.length - 1 && <br />}</span>
                   ))}
                 </p>
-              );
+              ];
             })}
           </div>
         ) : (
