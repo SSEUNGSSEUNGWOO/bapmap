@@ -102,7 +102,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                     <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
                       {spot.region || spot.city}
                     </div>
-                    <div className="font-semibold text-sm mb-auto" style={{ color: "var(--ink)" }}>
+                    <div className="font-semibold text-sm mb-auto" style={{ color: "var(--ink)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                       {spot.english_name || spot.name}
                     </div>
                     <div className="flex items-center justify-between mt-3">
