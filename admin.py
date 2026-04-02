@@ -4,9 +4,11 @@ import json
 import streamlit as st
 from dotenv import load_dotenv
 from supabase import create_client
+from anthropic import Anthropic
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
 from pipeline.enrich import search_place, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components
+from pipeline.generator import generate_post
 
 load_dotenv()
 
@@ -16,6 +18,7 @@ for key in ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "GOOGLE_PLACES_API_KEY", "AN
         os.environ[key] = st.secrets[key]
 
 sb = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
+anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 PRICE_MAP = {
     "PRICE_LEVEL_FREE": "$",
@@ -216,7 +219,21 @@ with tab2:
             status = st.selectbox("상태", ["메모필요", "메모완료", "업로드완료"],
                                   index=["메모필요", "메모완료", "업로드완료"].index(r.get("status", "메모필요")),
                                   key=f"status_{r['id']}")
-            if st.button("저장", key=f"save_{r['id']}"):
-                sb.table("spots").update({"memo": memo, "content": content, "status": status}).eq("id", r["id"]).execute()
-                st.success("저장됨!")
-                st.rerun()
+            col_save, col_gen = st.columns([1, 1])
+            with col_save:
+                if st.button("저장", key=f"save_{r['id']}"):
+                    sb.table("spots").update({"memo": memo, "content": content, "status": status}).eq("id", r["id"]).execute()
+                    st.success("저장됨!")
+                    st.rerun()
+            with col_gen:
+                if st.button("✨ 글 생성 + 업로드", key=f"gen_{r['id']}", type="primary"):
+                    if not memo.strip():
+                        st.error("메모를 먼저 써주세요")
+                    else:
+                        with st.spinner("글 생성 중..."):
+                            sb.table("spots").update({"memo": memo}).eq("id", r["id"]).execute()
+                            full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
+                            generated = generate_post(full_spot)
+                            sb.table("spots").update({"content": generated, "status": "업로드완료"}).eq("id", r["id"]).execute()
+                        st.success("✅ 글 생성 완료! 업로드됨")
+                        st.rerun()
