@@ -78,6 +78,7 @@ def get_subway(lat: float, lng: float) -> str:
         json={
             "includedTypes": ["subway_station"],
             "maxResultCount": 1,
+            "languageCode": "en",
             "locationRestriction": {
                 "circle": {
                     "center": {"latitude": lat, "longitude": lng},
