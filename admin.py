@@ -62,34 +62,64 @@ with tab1:
         rating = place.get("rating", 0)
         photos = place.get("photos", [])
         image_url = get_photo_url(photos[0]["name"]) if photos else ""
+        subway = get_subway(lat, lng)
+        hours = parse_hours(place)
+        korean_address = get_korean_address(name)
+        price_level = PRICE_MAP.get(place.get("priceLevel", ""), "")
+        category = place.get("primaryType", "").replace("_", " ").title()
 
         st.divider()
-        col1, col2 = st.columns([1, 2])
-        with col1:
+        img_col, info_col = st.columns([1, 2])
+        with img_col:
             if image_url:
                 st.image(image_url, width=250)
-        with col2:
-            st.markdown(f"### {english_name}")
-            st.markdown(f"**주소:** {english_address}")
+        with info_col:
             st.markdown(f"**평점:** ★{rating} ({place.get('userRatingCount', 0):,}개 리뷰)")
-            subway = get_subway(lat, lng)
-            st.markdown(f"**지하철:** {subway}")
-            st.markdown(f"**도시:** {city} / {region}")
+            st.markdown(f"**Google Maps:** {place.get('googleMapsUri', '')}")
 
         st.divider()
-        memo = st.text_area("메모 (선택)", placeholder="직접 가본 느낌, 추천 메뉴, 팁 등 자유롭게")
+        st.markdown("##### 기본 정보 수정")
+        r1c1, r1c2, r1c3 = st.columns(3)
+        with r1c1:
+            english_name = st.text_input("영어 이름", value=english_name, key="edit_english_name")
+        with r1c2:
+            city = st.text_input("도시 (city)", value=city, key="edit_city")
+        with r1c3:
+            region = st.text_input("지역 (region)", value=region, key="edit_region")
+
+        r2c1, r2c2, r2c3 = st.columns(3)
+        with r2c1:
+            category = st.text_input("카테고리", value=category, key="edit_category")
+        with r2c2:
+            price_level = st.text_input("가격대", value=price_level, key="edit_price_level")
+        with r2c3:
+            subway = st.text_input("지하철", value=subway, key="edit_subway")
+
+        r3c1, r3c2 = st.columns(2)
+        with r3c1:
+            korean_address = st.text_input("한국어 주소", value=korean_address, key="edit_address")
+        with r3c2:
+            english_address = st.text_input("영어 주소", value=english_address, key="edit_english_address")
+
+        r4c1, r4c2, r4c3 = st.columns(3)
+        with r4c1:
+            vegetarian = st.checkbox("채식 가능", value=place.get("servesVegetarianFood", False), key="edit_veg")
+        with r4c2:
+            reservable = st.checkbox("예약 가능", value=place.get("reservable", False), key="edit_res")
+        with r4c3:
+            good_for_groups = st.checkbox("단체 가능", value=place.get("goodForGroups", False), key="edit_groups")
+
+        st.divider()
+        memo = st.text_area("메모", placeholder="직접 가본 느낌, 추천 메뉴, 팁 등 자유롭게")
         uploaded_files = st.file_uploader("내 사진 업로드 (최대 2장, 없으면 Google 사진 사용)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
         col_a, col_b = st.columns(2)
         with col_a:
             if st.button("✅ 추가 확정", type="primary"):
                 with st.spinner("저장 중..."):
-                    hours = parse_hours(place)
-                    korean_address = get_korean_address(name)
                     photo_name = photos[0].get("name", "") if photos else ""
                     image_urls = [get_photo_url(p["name"]) for p in photos[:3] if p.get("name")]
 
-                    # 업로드한 사진이 있으면 Supabase Storage에 저장
                     if uploaded_files:
                         slug = english_name.lower().replace(" ", "-")
                         uploaded_urls = []
@@ -98,8 +128,8 @@ with tab1:
                             sb.storage.from_("restaurant-images").upload(path, f.read(), {"content-type": "image/jpeg", "upsert": "true"})
                             pub_url = sb.storage.from_("restaurant-images").get_public_url(path)
                             uploaded_urls.append(pub_url)
-                        # 대표 사진은 Google, 나머지는 업로드한 사진으로 교체
                         image_urls = image_urls[:1] + uploaded_urls
+
                     raw_reviews = place.get("reviews", [])
                     reviews = [rv["text"]["text"] for rv in raw_reviews if rv.get("text", {}).get("languageCode") == "en"][:3]
 
@@ -108,7 +138,7 @@ with tab1:
                         "english_name": english_name,
                         "city": city,
                         "region": region,
-                        "category": place.get("primaryType", "").replace("_", " ").title(),
+                        "category": category,
                         "address": korean_address,
                         "english_address": english_address,
                         "lat": lat,
@@ -116,14 +146,14 @@ with tab1:
                         "google_maps_url": place.get("googleMapsUri", ""),
                         "rating": rating,
                         "rating_count": place.get("userRatingCount", 0),
-                        "price_level": PRICE_MAP.get(place.get("priceLevel", ""), ""),
+                        "price_level": price_level,
                         "hours": hours,
                         "image_url": get_photo_url(photo_name) if photo_name else "",
                         "image_urls": image_urls,
                         "subway": subway,
-                        "vegetarian": place.get("servesVegetarianFood", False),
-                        "reservable": place.get("reservable", False),
-                        "good_for_groups": place.get("goodForGroups", False),
+                        "vegetarian": vegetarian,
+                        "reservable": reservable,
+                        "good_for_groups": good_for_groups,
                         "google_reviews": reviews,
                         "memo": memo,
                         "status": "메모완료" if memo.strip() else "메모필요",

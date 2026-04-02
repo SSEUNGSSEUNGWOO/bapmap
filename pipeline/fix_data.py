@@ -61,12 +61,7 @@ def clean_city(city: str) -> str:
         .strip())
 
 def clean_region(region: str) -> str:
-    return (region
-        .replace("-gu", "")
-        .replace(" District", "")
-        .replace("특별자치도", "")
-        .replace("구", "")
-        .strip())
+    return region.replace("특별자치도", "").strip()
 
 res = sb.table("spots").select("id, name, english_name, city, region").execute()
 

@@ -127,6 +127,7 @@ if __name__ == "__main__":
             "status": "업로드완료",
             "wp_post_id": result["id"],
             "wp_url": post_url,
+            "content": content,
         }).eq("id", target["id"]).execute()
     else:
         print(f"실패: {result}")

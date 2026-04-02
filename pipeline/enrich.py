@@ -121,7 +121,7 @@ def parse_address_components(components: list) -> tuple[str, str]:
         if "administrative_area_level_1" in types:
             city = c["longText"].replace(" Metropolitan City", "").replace(" Special City", "")
         if "sublocality_level_1" in types:
-            region = c["longText"].replace(" District", "").replace(" Gu", "")
+            region = c["longText"]
     return city, region
 
 
