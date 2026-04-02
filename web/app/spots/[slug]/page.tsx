@@ -177,12 +177,15 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                   <div className="border-t border-[var(--border)] my-8" />
                 ),
                 table: ({ children }) => (
-                  <div className="overflow-x-auto mb-6">
+                  <div className="overflow-x-auto mb-6 rounded-xl" style={{ border: "1px solid var(--border)" }}>
                     <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>{children}</table>
                   </div>
                 ),
+                th: ({ children }) => (
+                  <th className="py-2 px-4 text-left text-xs font-bold tracking-wide uppercase" style={{ background: "var(--surface)", color: "var(--ink)", borderBottom: "1px solid var(--border)" }}>{children}</th>
+                ),
                 td: ({ children }) => (
-                  <td className="py-2 pr-4" style={{ borderBottom: "1px solid var(--border)", color: "var(--muted)" }}>{children}</td>
+                  <td className="py-2 px-4" style={{ borderBottom: "1px solid var(--border)", color: "var(--muted)" }}>{children}</td>
                 ),
                 a: ({ href, children }) => (
                   <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--orange)", textDecoration: "underline" }}>{children}</a>
