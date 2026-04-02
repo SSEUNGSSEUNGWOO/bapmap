@@ -69,6 +69,10 @@ with tab1:
         if not name:
             st.error("가게 이름을 입력해주세요")
         else:
+            existing = sb.table("spots").select("id, status").eq("name", name).execute()
+            if existing.data:
+                st.warning(f"⚠️ '{name}'은 이미 등록된 가게입니다. (상태: {existing.data[0].get('status', '')})")
+                st.stop()
             with st.spinner(f"{name} 검색 중..."):
                 place = search_place(name)
                 if not place and address_hint:
