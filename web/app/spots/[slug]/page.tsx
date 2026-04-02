@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 
 async function getSpot(slug: string) {
   const { data: spots } = await supabase
@@ -145,57 +146,51 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
         {/* 본문 글 */}
         {spot.content ? (
-          <div className="mb-10">
-            {spot.content.split("\n\n").flatMap((block: string, i: number) => {
-              const lines = block.split("\n").filter((l: string) => l.trim());
-              const isLineHeading = (line: string) => line.length <= 40 && !line.endsWith(".") && !line.endsWith(",");
-
-              // 첫 줄이 소제목이고 나머지 줄이 있는 경우 → 소제목 + 문단으로 분리
-              if (lines.length > 1 && isLineHeading(lines[0])) {
-                return [
-                  <h2 key={`h-${i}`} className="font-bold mt-10 mb-4 pl-4" style={{
-                    fontSize: "1.05rem",
-                    color: "var(--ink)",
-                    borderLeft: "3px solid var(--orange)",
-                    letterSpacing: "-0.01em",
-                  }}>
-                    {lines[0]}
-                  </h2>,
-                  <p key={`p-${i}`} className="mb-6" style={{ fontSize: "1rem", lineHeight: "1.9", color: "var(--muted)" }}>
-                    {lines.slice(1).map((line: string, j: number) => (
-                      <span key={j}>{line}{j < lines.length - 2 && <br />}</span>
-                    ))}
-                  </p>
-                ];
-              }
-
-              // 단독 소제목
-              if (lines.length === 1 && isLineHeading(lines[0])) {
-                return [
-                  <h2 key={`h-${i}`} className="font-bold mt-10 mb-4 pl-4" style={{
-                    fontSize: "1.05rem",
-                    color: "var(--ink)",
-                    borderLeft: "3px solid var(--orange)",
-                    letterSpacing: "-0.01em",
-                  }}>
-                    {lines[0]}
-                  </h2>
-                ];
-              }
-
-              // 일반 문단
-              return [
-                <p key={`p-${i}`} className="mb-6" style={{
-                  fontSize: i === 0 ? "1.15rem" : "1rem",
-                  lineHeight: "1.9",
-                  color: i === 0 ? "var(--ink)" : "var(--muted)",
-                }}>
-                  {lines.map((line: string, j: number) => (
-                    <span key={j}>{line}{j < lines.length - 1 && <br />}</span>
-                  ))}
-                </p>
-              ];
-            })}
+          <div className="mb-10 prose-content">
+            <ReactMarkdown
+              components={{
+                h1: ({ children }) => (
+                  <h1 className="font-display mb-4" style={{ fontSize: "1.5rem", color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2 }}>{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="font-bold mt-10 mb-4 pl-4" style={{ fontSize: "1.05rem", color: "var(--ink)", borderLeft: "3px solid var(--orange)", letterSpacing: "-0.01em" }}>{children}</h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="font-bold mt-6 mb-2" style={{ fontSize: "0.95rem", color: "var(--ink)" }}>{children}</h3>
+                ),
+                p: ({ children }) => (
+                  <p className="mb-6" style={{ fontSize: "1rem", lineHeight: "1.9", color: "var(--muted)" }}>{children}</p>
+                ),
+                strong: ({ children }) => (
+                  <strong style={{ color: "var(--ink)", fontWeight: 600 }}>{children}</strong>
+                ),
+                ul: ({ children }) => (
+                  <ul className="mb-6 space-y-1 pl-4" style={{ color: "var(--muted)", listStyleType: "disc" }}>{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="mb-6 space-y-1 pl-4" style={{ color: "var(--muted)", listStyleType: "decimal" }}>{children}</ol>
+                ),
+                li: ({ children }) => (
+                  <li style={{ fontSize: "1rem", lineHeight: "1.9" }}>{children}</li>
+                ),
+                hr: () => (
+                  <div className="border-t border-[var(--border)] my-8" />
+                ),
+                table: ({ children }) => (
+                  <div className="overflow-x-auto mb-6">
+                    <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>{children}</table>
+                  </div>
+                ),
+                td: ({ children }) => (
+                  <td className="py-2 pr-4" style={{ borderBottom: "1px solid var(--border)", color: "var(--muted)" }}>{children}</td>
+                ),
+                a: ({ href, children }) => (
+                  <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--orange)", textDecoration: "underline" }}>{children}</a>
+                ),
+              }}
+            >
+              {spot.content}
+            </ReactMarkdown>
           </div>
         ) : (
           <p className="mb-10" style={{ color: "var(--muted)" }}>Content coming soon.</p>
