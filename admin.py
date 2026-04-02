@@ -28,6 +28,33 @@ PRICE_MAP = {
     "PRICE_LEVEL_VERY_EXPENSIVE": "$$$$",
 }
 
+CATEGORY_MAP = {
+    "ramen_restaurant": "Ramen",
+    "japanese_restaurant": "Japanese",
+    "korean_restaurant": "Korean",
+    "chinese_restaurant": "Chinese",
+    "italian_restaurant": "Italian",
+    "french_restaurant": "French",
+    "thai_restaurant": "Thai",
+    "vietnamese_restaurant": "Vietnamese",
+    "pizza_restaurant": "Pizza",
+    "hamburger_restaurant": "Burger",
+    "cafe": "Cafe",
+    "coffee_shop": "Cafe",
+    "bakery": "Bakery",
+    "bar": "Bar",
+    "wine_bar": "Wine Bar",
+    "izakaya_restaurant": "Japanese",
+    "sushi_restaurant": "Japanese",
+    "seafood_restaurant": "Seafood",
+    "steak_house": "Korean BBQ",
+    "barbecue_restaurant": "Korean BBQ",
+    "noodle_restaurant": "Noodles",
+    "chicken_wings_restaurant": "Chicken",
+    "fast_food_restaurant": "Burger",
+    "restaurant": "Korean",
+}
+
 st.set_page_config(page_title="Bapmap Admin", page_icon="🍚", layout="wide")
 st.title("🍚 Bapmap Admin")
 
@@ -69,7 +96,8 @@ with tab1:
         hours = parse_hours(place)
         korean_address = get_korean_address(name)
         price_level = PRICE_MAP.get(place.get("priceLevel", ""), "")
-        category = place.get("primaryType", "").replace("_", " ").title()
+        primary_type = place.get("primaryType", "")
+        category = CATEGORY_MAP.get(primary_type, primary_type.replace("_", " ").title())
 
         st.divider()
         img_col, info_col = st.columns([1, 2])
