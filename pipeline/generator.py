@@ -40,7 +40,7 @@ CONTENT REQUIREMENTS:
 4. What to Order — 2-3 specific recommendations. Be direct.
 5. Atmosphere & Vibe — honest, brief
 6. Practical Info:
-   - Address: [Korean address] / [English address]
+   - Address: [Korean address] / [English address — remove any Korean characters, translate building/floor info to English (e.g. "2층" → "2F", "지하1층" → "B1")]
    - Google Maps: [google_maps_url]
    - Nearest subway: [subway]
    - Hours: [hours]
