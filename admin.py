@@ -116,6 +116,10 @@ with tab1:
         col_a, col_b = st.columns(2)
         with col_a:
             if st.button("✅ 추가 확정", type="primary"):
+                existing = sb.table("spots").select("id").eq("name", name).execute()
+                if existing.data:
+                    st.error(f"⚠️ '{name}'은 이미 등록된 가게입니다.")
+                    st.stop()
                 with st.spinner("저장 중..."):
                     photo_name = photos[0].get("name", "") if photos else ""
                     image_urls = [get_photo_url(p["name"]) for p in photos[:3] if p.get("name")]
@@ -158,11 +162,17 @@ with tab1:
                         "memo": memo,
                         "status": "메모완료" if memo.strip() else "메모필요",
                     }
-                    sb.table("spots").insert(data).execute()
-                    del st.session_state["found_place"]
-                    del st.session_state["found_name"]
-                    st.success(f"✅ {name} 추가 완료!")
-                    st.rerun()
+                    try:
+                        res = sb.table("spots").insert(data).execute()
+                        if res.data:
+                            del st.session_state["found_place"]
+                            del st.session_state["found_name"]
+                            st.success(f"✅ {name} 추가 완료!")
+                            st.rerun()
+                        else:
+                            st.error(f"저장 실패: 응답 데이터 없음. {res}")
+                    except Exception as e:
+                        st.error(f"저장 중 오류 발생: {e}")
         with col_b:
             if st.button("❌ 취소"):
                 del st.session_state["found_place"]
