@@ -86,8 +86,8 @@ export default async function Home() {
             <Link href="/spots" className="text-sm font-semibold no-underline hover:opacity-70 transition-opacity" style={{ color: "var(--orange)" }}>View all →</Link>
           </div>
           <div className="grid grid-cols-3 gap-6">
-            {recent.map((spot: Spot) => (
-              <SpotCard key={spot.id} spot={spot} />
+            {recent.map((spot) => (
+              <SpotCard key={spot.id} spot={spot as Spot} />
             ))}
           </div>
         </section>

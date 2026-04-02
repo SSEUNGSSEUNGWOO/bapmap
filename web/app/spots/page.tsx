@@ -15,7 +15,7 @@ export default async function SpotsPage() {
       <p className="text-gray-400 mb-10">Every place on here is somewhere we've actually been.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {spots?.map((spot: Spot) => {
+        {spots?.map((spot) => {
           const slug = (spot.english_name || spot.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
           return (
             <Link key={spot.id} href={`/spots/${slug}`} className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-md transition-all">
