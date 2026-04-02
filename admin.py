@@ -77,7 +77,6 @@ with tab1:
             st.markdown(f"**도시:** {city} / {region}")
 
         st.divider()
-        category = st.text_input("카테고리", placeholder="예: 라멘, 곱창, 카페")
         memo = st.text_area("메모 (선택)", placeholder="직접 가본 느낌, 추천 메뉴, 팁 등 자유롭게")
 
         col_a, col_b = st.columns(2)
@@ -96,7 +95,7 @@ with tab1:
                         "english_name": english_name,
                         "city": city,
                         "region": region,
-                        "category": category or place.get("primaryType", "").replace("_", " ").title(),
+                        "category": place.get("primaryType", "").replace("_", " ").title(),
                         "address": korean_address,
                         "english_address": english_address,
                         "lat": lat,
