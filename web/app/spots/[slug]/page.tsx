@@ -50,8 +50,40 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
     ? spot.image_urls
     : spot.image_url ? [spot.image_url] : [];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": spot.english_name || spot.name,
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": spot.english_address || spot.address,
+      "addressLocality": spot.city,
+      "addressRegion": spot.region,
+      "addressCountry": "KR",
+    },
+    "geo": spot.lat && spot.lng ? {
+      "@type": "GeoCoordinates",
+      "latitude": spot.lat,
+      "longitude": spot.lng,
+    } : undefined,
+    "aggregateRating": spot.rating ? {
+      "@type": "AggregateRating",
+      "ratingValue": spot.rating,
+      "reviewCount": spot.rating_count || 1,
+      "bestRating": 5,
+    } : undefined,
+    "priceRange": spot.price_level || undefined,
+    "servesCuisine": spot.category || undefined,
+    "image": images[0] || undefined,
+    "url": `https://bapmap.com/spots/${slug}`,
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ── 이미지 갤러리 ── */}
       {images.length > 0 && (
         <div className={`grid gap-2 ${images.length >= 3 ? "grid-cols-3" : images.length === 2 ? "grid-cols-2" : "grid-cols-1"}`} style={{ maxHeight: "480px" }}>
