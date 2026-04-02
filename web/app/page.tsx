@@ -55,7 +55,7 @@ export default async function Home() {
         <div className="max-w-4xl mx-auto grid grid-cols-3 gap-4">
           {[
             { title: "Spots", desc: "Every place here is somewhere we've actually been.", href: "/spots", img: "/card-spots.jpg" },
-            { title: "By Location", desc: "Seoul, Gangwon, Jeju — browse by where you're headed.", href: "/spots", img: "/card-location.jpg" },
+            { title: "By Location", desc: "Seoul, Gangwon, Jeju — browse by where you're headed.", href: "/map", img: "/card-location.jpg" },
             { title: "About", desc: "Bad at English. Great at eating. The story behind Bapmap.", href: "/about", img: "/card-about.jpg" },
           ].map((card) => (
             <Link key={card.title} href={card.href} className="group block no-underline relative rounded-2xl overflow-hidden shadow-2xl group-hover:-translate-y-1.5 group-hover:shadow-[0_24px_48px_rgba(0,0,0,0.3)] transition-all duration-200" style={{ height: "180px" }}>
