@@ -11,6 +11,30 @@
 
 * { box-sizing: border-box; color-scheme: light only; }
 
+/* Mapbox popup 커스텀 */
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+  border: 1px solid #ebebeb;
+}
+.mapboxgl-popup-close-button {
+  font-size: 16px;
+  color: #fff;
+  background: rgba(0,0,0,0.35);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  line-height: 20px;
+  top: 6px;
+  right: 6px;
+  padding: 0;
+}
+.mapboxgl-popup-tip {
+  border-top-color: #fff !important;
+}
+
 body {
   background: #fff;
   color: var(--ink);

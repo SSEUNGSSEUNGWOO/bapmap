@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
-import Link from "next/link";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
@@ -23,7 +22,6 @@ type Spot = {
 export default function MapClient({ spots }: { spots: Spot[] }) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [selected, setSelected] = useState<Spot | null>(null);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -40,9 +38,10 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
     spots.forEach((spot) => {
       if (!spot.lat || !spot.lng) return;
 
+      const slug = (spot.english_name || spot.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
+
       const el = document.createElement("div");
       el.style.cssText = "width: 28px; height: 28px; cursor: pointer;";
-
       const inner = document.createElement("div");
       inner.style.cssText = `
         width: 28px; height: 28px; border-radius: 50%;
@@ -54,63 +53,46 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
       `;
       inner.innerHTML = "🍽";
       el.appendChild(inner);
-
       el.addEventListener("mouseenter", () => { inner.style.transform = "scale(1.3)"; });
       el.addEventListener("mouseleave", () => { inner.style.transform = "scale(1)"; });
-      el.addEventListener("click", () => setSelected(spot));
+
+      const popupHtml = `
+        <div style="width:220px; font-family: inherit;">
+          ${spot.image_url ? `<img src="${spot.image_url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px 8px 0 0; display:block;" />` : ""}
+          <div style="padding: 10px 12px 12px;">
+            <div style="font-size:9px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:#F5A623; margin-bottom:4px;">
+              ${spot.region || spot.city}
+            </div>
+            <div style="font-size:13px; font-weight:600; color:#1a1a1a; margin-bottom:6px; line-height:1.3;">
+              ${spot.english_name || spot.name}
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="font-size:11px; color:#888;">★ ${spot.rating} · ${spot.category || ""}</span>
+              <a href="/spots/${slug}" style="font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; background:#F5A623; color:#fff; text-decoration:none;">
+                View →
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const popup = new mapboxgl.Popup({
+        offset: 16,
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: "240px",
+      }).setHTML(popupHtml);
 
       new mapboxgl.Marker(el)
         .setLngLat([spot.lng, spot.lat])
+        .setPopup(popup)
         .addTo(map.current!);
     });
   }, [spots]);
 
-  const slug = selected
-    ? (selected.english_name || selected.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "")
-    : "";
-
   return (
     <div className="relative w-full" style={{ height: "calc(100vh - 64px)" }}>
       <div ref={mapContainer} className="w-full h-full" />
-
-      {/* 선택된 스팟 카드 */}
-      {selected && (
-        <div
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-2xl overflow-hidden shadow-2xl"
-          style={{ width: "320px", background: "#fff", border: "1px solid var(--border)" }}
-        >
-          {selected.image_url && (
-            <img src={selected.image_url} alt={selected.english_name} className="w-full object-cover" style={{ height: "140px" }} />
-          )}
-          <div className="p-4">
-            <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
-              {selected.region || selected.city}
-            </div>
-            <div className="font-semibold text-sm mb-1" style={{ color: "var(--ink)" }}>
-              {selected.english_name || selected.name}
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs" style={{ color: "var(--muted)" }}>★ {selected.rating} · {selected.category}</span>
-              <Link
-                href={`/spots/${slug}`}
-                className="text-xs font-bold px-3 py-1.5 rounded-full text-white no-underline"
-                style={{ background: "var(--orange)" }}
-              >
-                View →
-              </Link>
-            </div>
-          </div>
-          <button
-            onClick={() => setSelected(null)}
-            className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs"
-            style={{ background: "rgba(0,0,0,0.4)", color: "#fff" }}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      {/* 스팟 수 */}
       <div
         className="absolute top-4 left-4 px-3 py-2 rounded-xl text-xs font-semibold"
         style={{ background: "#fff", border: "1px solid var(--border)", color: "var(--muted)", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
