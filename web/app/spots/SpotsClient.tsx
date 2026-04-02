@@ -1,8 +1,53 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { Spot } from "@/lib/supabase";
+
+function SpotCardImage({ images, name }: { images: string[]; name: string }) {
+  const [idx, setIdx] = useState(0);
+  const [hovering, setHovering] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleMouseEnter = () => {
+    if (images.length <= 1) return;
+    setHovering(true);
+    intervalRef.current = setInterval(() => {
+      setIdx((prev) => (prev + 1) % images.length);
+    }, 700);
+  };
+
+  const handleMouseLeave = () => {
+    setHovering(false);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setIdx(0);
+  };
+
+  return (
+    <div
+      className="h-48 overflow-hidden bg-gray-100 relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {images.map((url, i) => (
+        <img
+          key={i}
+          src={url}
+          alt={`${name} ${i + 1}`}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+          style={{ opacity: idx === i ? 1 : 0 }}
+        />
+      ))}
+      {images.length > 1 && hovering && (
+        <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
+          {images.map((_, i) => (
+            <div key={i} className="w-1.5 h-1.5 rounded-full transition-all" style={{ background: idx === i ? "#fff" : "rgba(255,255,255,0.5)" }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SpotsClient({ spots }: { spots: Spot[] }) {
   const [query, setQuery] = useState("");
@@ -86,13 +131,10 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
               <Link key={spot.id} href={`/spots/${slug}`} className="group block no-underline h-full">
                 <div className="bg-white rounded-2xl overflow-hidden border border-[var(--border)] group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-200 h-full flex flex-col">
                   {spot.image_url ? (
-                    <div className="h-48 overflow-hidden bg-gray-100">
-                      <img
-                        src={spot.image_url}
-                        alt={spot.english_name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
+                    <SpotCardImage
+                      images={Array.isArray(spot.image_urls) && spot.image_urls.length > 0 ? spot.image_urls.slice(0, 3) : [spot.image_url]}
+                      name={spot.english_name || spot.name}
+                    />
                   ) : (
                     <div className="h-48 flex items-center justify-center" style={{ background: "var(--surface)" }}>
                       <span style={{ fontSize: "2.5rem" }}>🍜</span>
