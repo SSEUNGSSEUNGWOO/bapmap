@@ -242,6 +242,21 @@ with tab2:
     if status_filter != "전체":
         restaurants = [r for r in restaurants if r.get("status") == status_filter]
 
+    memo_done = [r for r in res.data if r.get("status") == "메모완료" and r.get("memo", "").strip()]
+    if memo_done:
+        st.info(f"메모완료 {len(memo_done)}개 — 한 번에 글 생성 가능")
+        if st.button(f"🚀 메모완료 전체 글 생성 + 업로드 ({len(memo_done)}개)", type="primary"):
+            progress = st.progress(0)
+            for i, r in enumerate(memo_done):
+                name = r.get("english_name") or r["name"]
+                with st.spinner(f"{name} 생성 중... ({i+1}/{len(memo_done)})"):
+                    full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
+                    generated = generate_post(full_spot)
+                    sb.table("spots").update({"content": generated, "status": "업로드완료"}).eq("id", r["id"]).execute()
+                progress.progress((i + 1) / len(memo_done))
+            st.success(f"✅ {len(memo_done)}개 완료!")
+            st.rerun()
+
     st.write(f"총 {len(restaurants)}개")
 
     for r in restaurants:
