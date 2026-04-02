@@ -3,6 +3,8 @@ import { supabase } from "@/lib/supabase";
 import type { Spot } from "@/lib/supabase";
 import SpotCard from "./SpotCard";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { data: recent } = await supabase
     .from("spots")

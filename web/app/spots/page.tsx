@@ -2,6 +2,8 @@ import { supabase } from "@/lib/supabase";
 import type { Spot } from "@/lib/supabase";
 import SpotsClient from "./SpotsClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function SpotsPage() {
   const { data: spots } = await supabase
     .from("spots")
