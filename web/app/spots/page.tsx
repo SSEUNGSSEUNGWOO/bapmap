@@ -5,7 +5,7 @@ import SpotsClient from "./SpotsClient";
 export default async function SpotsPage() {
   const { data: spots } = await supabase
     .from("spots")
-    .select("id, name, english_name, city, region, image_url, rating, category, price_level, subway")
+    .select("id, name, english_name, city, region, image_url, image_urls, rating, category, price_level, subway")
     .eq("status", "업로드완료")
     .order("created_at", { ascending: false });
 
