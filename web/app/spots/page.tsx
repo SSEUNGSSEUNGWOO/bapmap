@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import type { Spot } from "@/lib/supabase";
 import SpotsClient from "./SpotsClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function SpotsPage() {
   const { data: spots } = await supabase
