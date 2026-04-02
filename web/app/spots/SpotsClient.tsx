@@ -116,9 +116,6 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                         </div>
                       )}
                     </div>
-                    {spot.subway && (
-                      <div className="text-xs mt-1.5" style={{ color: "var(--muted)" }}>🚇 {spot.subway}</div>
-                    )}
                   </div>
                 </div>
               </Link>
