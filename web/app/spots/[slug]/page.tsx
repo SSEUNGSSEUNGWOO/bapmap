@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 async function getSpot(slug: string) {
   const { data: spots } = await supabase
@@ -45,46 +46,111 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
   const spot = await getSpot(slug);
   if (!spot) notFound();
 
+  const images: string[] = Array.isArray(spot.image_urls) && spot.image_urls.length > 0
+    ? spot.image_urls
+    : spot.image_url ? [spot.image_url] : [];
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
-      {/* Featured image */}
-      {spot.image_url && (
-        <div className="rounded-2xl overflow-hidden mb-8 h-72">
-          <img src={spot.image_url} alt={spot.english_name} className="w-full h-full object-cover" />
+    <div>
+      {/* ── 이미지 갤러리 ── */}
+      {images.length > 0 && (
+        <div className={`grid gap-2 ${images.length >= 3 ? "grid-cols-3" : images.length === 2 ? "grid-cols-2" : "grid-cols-1"}`} style={{ maxHeight: "480px" }}>
+          {images.slice(0, 3).map((url, i) => (
+            <div key={i} className={`overflow-hidden bg-gray-100 ${images.length === 1 ? "col-span-1" : ""}`} style={{ height: "480px" }}>
+              <img
+                src={url}
+                alt={`${spot.english_name || spot.name} ${i + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Meta */}
-      <div className="text-sm text-orange-500 font-medium mb-2">{spot.region || spot.city}</div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-1">{spot.english_name || spot.name}</h1>
-      <div className="flex gap-4 text-sm text-gray-400 mb-8">
-        <span>★ {spot.rating} ({spot.rating_count?.toLocaleString()} reviews)</span>
-        <span>{spot.price_level}</span>
-        {spot.subway && <span>🚇 {spot.subway}</span>}
-      </div>
+      {/* ── 본문 ── */}
+      <div className="max-w-2xl mx-auto px-6 py-12">
 
-      {/* Content */}
-      {spot.content ? (
-        <div className="prose prose-gray max-w-none whitespace-pre-wrap text-gray-700 leading-relaxed">
-          {spot.content}
+        {/* 브레드크럼 */}
+        <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--muted)" }}>
+          <Link href="/spots" className="no-underline hover:opacity-70" style={{ color: "var(--muted)" }}>Spots</Link>
+          <span>›</span>
+          <span style={{ color: "var(--orange)" }}>{spot.region || spot.city}</span>
         </div>
-      ) : (
-        <p className="text-gray-400">Content coming soon.</p>
-      )}
 
-      {/* Google Maps */}
-      {spot.google_maps_url && (
-        <div className="mt-10">
+        {/* 헤더 */}
+        <div className="mb-8">
+          <p className="text-xs font-bold tracking-[0.2em] uppercase mb-2" style={{ color: "var(--orange)" }}>
+            {spot.region || spot.city}
+          </p>
+          <h1 className="font-display mb-4" style={{ fontSize: "clamp(2rem,5vw,3rem)", color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            {spot.english_name || spot.name}
+          </h1>
+
+          {/* 배지들 */}
+          <div className="flex flex-wrap gap-2">
+            <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
+              ★ {spot.rating} · {spot.rating_count?.toLocaleString()} reviews
+            </span>
+            {spot.price_level && (
+              <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
+                {spot.price_level}
+              </span>
+            )}
+            {spot.subway && (
+              <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
+                🚇 {spot.subway}
+              </span>
+            )}
+            {spot.category && (
+              <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
+                {spot.category}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-[var(--border)] mb-8" />
+
+        {/* 본문 글 */}
+        {spot.content ? (
+          <div className="mb-10" style={{ color: "var(--ink)" }}>
+            {spot.content.split("\n\n").map((para: string, i: number) => (
+              <p key={i} className="mb-5 leading-relaxed" style={{ fontSize: "1.05rem", lineHeight: "1.85" }}>
+                {para}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="mb-10" style={{ color: "var(--muted)" }}>Content coming soon.</p>
+        )}
+
+        <div className="border-t border-[var(--border)] mb-8" />
+
+        {/* 영업시간 */}
+        {spot.hours && (
+          <div className="mb-8">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: "var(--orange)" }}>Hours</p>
+            <div className="text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
+              {spot.hours.split("\n").map((line: string, i: number) => (
+                <div key={i}>{line}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 구글맵 버튼 */}
+        {spot.google_maps_url && (
           <a
             href={spot.google_maps_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-orange-500 text-white font-semibold px-5 py-2.5 rounded-full hover:bg-orange-600 transition-colors text-sm"
+            className="inline-flex items-center gap-2 font-bold text-sm px-6 py-3 rounded-full text-white no-underline transition-opacity hover:opacity-80"
+            style={{ background: "var(--orange)" }}
           >
             Open in Google Maps →
           </a>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
