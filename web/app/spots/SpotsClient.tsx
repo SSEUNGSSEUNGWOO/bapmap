@@ -55,6 +55,7 @@ const PAGE_SIZE = 9;
 export default function SpotsClient({ spots }: { spots: Spot[] }) {
   const [query, setQuery] = useState("");
   const [activeRegion, setActiveRegion] = useState("All");
+  const [activeCategory, setActiveCategory] = useState("All");
   const [sort, setSort] = useState<SortOption>("newest");
   const [page, setPage] = useState(1);
 
@@ -63,15 +64,21 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
     return ["All", ...Array.from(set).sort()];
   }, [spots]);
 
+  const categories = useMemo(() => {
+    const set = new Set(spots.map((s) => s.category).filter(Boolean));
+    return ["All", ...Array.from(set).sort()];
+  }, [spots]);
+
   const filtered = useMemo(() => {
     const result = spots.filter((s) => {
       const matchRegion = activeRegion === "All" || (s.region || s.city) === activeRegion;
+      const matchCategory = activeCategory === "All" || s.category === activeCategory;
       const q = query.toLowerCase();
       const matchQuery = !q ||
         (s.english_name || s.name).toLowerCase().includes(q) ||
         (s.region || s.city || "").toLowerCase().includes(q) ||
         (s.category || "").toLowerCase().includes(q);
-      return matchRegion && matchQuery;
+      return matchRegion && matchCategory && matchQuery;
     });
 
     if (sort === "rating") return [...result].sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -131,6 +138,24 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
           ))}
         </div>
 
+        {/* 카테고리 필터 */}
+        <div className="flex gap-2 flex-wrap">
+          {categories.map((c) => (
+            <button
+              key={c}
+              onClick={() => handleFilterChange(() => setActiveCategory(c))}
+              className="text-xs font-semibold px-4 py-2 rounded-full transition-all"
+              style={{
+                background: activeCategory === c ? "var(--ink)" : "var(--surface)",
+                color: activeCategory === c ? "#fff" : "var(--muted)",
+                border: `1px solid ${activeCategory === c ? "var(--ink)" : "var(--border)"}`,
+              }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
         {/* 지역 필터 */}
         <div className="flex gap-2 flex-wrap">
           {regions.map((r) => (
@@ -153,6 +178,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
       {/* 결과 수 */}
       <p className="text-xs font-semibold mb-6 tracking-wide" style={{ color: "var(--muted)" }}>
         {filtered.length} {filtered.length === 1 ? "spot" : "spots"}
+        {activeCategory !== "All" && ` · ${activeCategory}`}
         {activeRegion !== "All" && ` in ${activeRegion}`}
         {query && ` for "${query}"`}
       </p>
