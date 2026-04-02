@@ -120,7 +120,12 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
               const isHeading = lines.length === 1 && lines[0].length <= 40 && !lines[0].endsWith(".");
               if (isHeading) {
                 return (
-                  <h2 key={i} className="font-bold mt-10 mb-3" style={{ fontSize: "1.1rem", color: "var(--ink)" }}>
+                  <h2 key={i} className="font-bold mt-10 mb-4 pl-4" style={{
+                    fontSize: "1.05rem",
+                    color: "var(--ink)",
+                    borderLeft: "3px solid var(--orange)",
+                    letterSpacing: "-0.01em",
+                  }}>
                     {lines[0]}
                   </h2>
                 );
