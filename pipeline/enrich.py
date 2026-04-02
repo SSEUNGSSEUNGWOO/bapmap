@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import math
 import requests
@@ -65,6 +66,13 @@ def get_korean_address(name: str) -> str:
     )
     places = resp.json().get("places", [])
     return places[0].get("formattedAddress", "") if places else ""
+
+
+def clean_english(s: str) -> str:
+    s = re.sub(r'[\uac00-\ud7a3]+', '', s)
+    s = re.sub(r',\s*,', ',', s)
+    s = re.sub(r'\s{2,}', ' ', s)
+    return re.sub(r'(,\s*)+$', '', s).strip()
 
 
 def get_photo_url(photo_name: str) -> str:
@@ -158,7 +166,7 @@ def enrich():
         ][:3]
 
         r["english_name"] = place.get("displayName", {}).get("text", "")
-        r["english_address"] = place.get("formattedAddress", "")
+        r["english_address"] = clean_english(place.get("formattedAddress", ""))
         r["address"] = r.get("address") or korean_address
         r["city"] = city or r.get("city", "")
         r["region"] = region or r.get("region", "")
