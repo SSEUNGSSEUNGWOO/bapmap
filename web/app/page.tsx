@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Spot } from "@/lib/supabase";
+import SpotCard from "./SpotCard";
 
 export default async function Home() {
   const { data: recent } = await supabase
     .from("spots")
-    .select("id, name, english_name, city, region, image_url, rating, price_level, subway")
+    .select("id, name, english_name, city, region, image_url, image_urls, rating, price_level, subway")
     .eq("status", "업로드완료")
     .order("created_at", { ascending: false })
     .limit(6);
@@ -194,35 +195,3 @@ export default async function Home() {
   );
 }
 
-function SpotCard({ spot }: { spot: Spot }) {
-  const slug = (spot.english_name || spot.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-  return (
-    <Link href={`/spots/${slug}`} className="group block no-underline">
-      <div className="bg-white rounded-2xl overflow-hidden border border-[var(--border)] group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-200">
-        {spot.image_url ? (
-          <div className="h-48 overflow-hidden bg-gray-100">
-            <img
-              src={spot.image_url}
-              alt={spot.english_name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          </div>
-        ) : (
-          <div className="h-48 bg-[#faf8f5] flex items-center justify-center">
-            <span style={{ fontSize: "2.5rem" }}>🍜</span>
-          </div>
-        )}
-        <div className="p-4">
-          <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
-            {spot.region || spot.city}
-          </div>
-          <div className="font-semibold text-sm mb-2" style={{ color: "var(--ink)" }}>{spot.english_name || spot.name}</div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs" style={{ color: "var(--muted)" }}>★ {spot.rating}</span>
-            {spot.price_level && <span className="text-xs" style={{ color: "var(--muted)" }}>{spot.price_level}</span>}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
