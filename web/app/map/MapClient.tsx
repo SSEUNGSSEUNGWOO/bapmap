@@ -28,7 +28,7 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/light-v11",
+      style: "mapbox://styles/mapbox/streets-v12",
       center: [126.9611, 37.5192],
       zoom: 11.5,
     });
