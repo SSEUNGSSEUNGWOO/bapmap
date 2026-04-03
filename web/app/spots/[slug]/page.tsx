@@ -166,6 +166,11 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
                 {spot.category}
               </span>
             )}
+            {spot.spice_level != null && spot.spice_level > 0 && (
+              <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
+                {"🌶️".repeat(spot.spice_level)}
+              </span>
+            )}
           </div>
         </div>
 

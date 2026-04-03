@@ -162,6 +162,14 @@ with tab1:
         with r4c3:
             good_for_groups = st.checkbox("단체 가능", value=place.get("goodForGroups", False), key="edit_groups")
 
+        spice_level = st.select_slider(
+            "매운맛 (Spice Level)",
+            options=[0, 1, 2, 3],
+            value=0,
+            format_func=lambda x: ["없음", "🌶️ mild", "🌶️🌶️ medium", "🌶️🌶️🌶️ hot"][x],
+            key="edit_spice"
+        )
+
         st.divider()
         memo = st.text_area("메모", placeholder="직접 가본 느낌, 추천 메뉴, 팁 등 자유롭게")
         uploaded_files = st.file_uploader("내 사진 업로드 (최대 2장, 없으면 Google 사진 사용)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
@@ -213,6 +221,7 @@ with tab1:
                         "good_for_groups": good_for_groups,
                         "google_reviews": reviews,
                         "memo": memo,
+                        "spice_level": spice_level if spice_level > 0 else None,
                         "status": "메모완료" if memo.strip() else "메모필요",
                     }
                     try:
@@ -286,6 +295,14 @@ with tab2:
             with loc_col3:
                 new_category = st.text_input("카테고리", value=r.get("category") or "", key=f"category_{r['id']}")
 
+            new_spice = st.select_slider(
+                "매운맛",
+                options=[0, 1, 2, 3],
+                value=r.get("spice_level") or 0,
+                format_func=lambda x: ["없음", "🌶️", "🌶️🌶️", "🌶️🌶️🌶️"][x],
+                key=f"spice_{r['id']}"
+            )
+
             memo = st.text_area("메모 (내부용)", value=r.get("memo") or "", key=f"memo_{r['id']}")
             content = st.text_area("본문 (사이트 표시)", value=r.get("content") or "", height=200, key=f"content_{r['id']}")
             status = st.selectbox("상태", ["메모필요", "메모완료", "업로드완료"],
@@ -294,7 +311,7 @@ with tab2:
             col_save, col_gen = st.columns([1, 1])
             with col_save:
                 if st.button("저장", key=f"save_{r['id']}"):
-                    sb.table("spots").update({"memo": memo, "content": content, "status": status, "region": new_region, "subway": new_subway, "category": new_category}).eq("id", r["id"]).execute()
+                    sb.table("spots").update({"memo": memo, "content": content, "status": status, "region": new_region, "subway": new_subway, "category": new_category, "spice_level": new_spice if new_spice > 0 else None}).eq("id", r["id"]).execute()
                     st.success("저장됨!")
                     st.rerun()
             with col_gen:
