@@ -237,13 +237,22 @@ with tab1:
 with tab2:
     st.subheader("전체 가게 목록")
 
-    status_filter = st.selectbox("상태 필터", ["전체", "메모필요", "메모완료", "업로드완료"])
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        status_filter = st.selectbox("상태 필터", ["전체", "메모필요", "메모완료", "업로드완료"])
 
     res = sb.table("spots").select("id, name, english_name, city, region, subway, category, status, memo, rating, content").order("created_at", desc=True).execute()
-    restaurants = res.data
+    all_spots = res.data
 
+    cities = ["전체"] + sorted(set(r.get("region") or r.get("city") or "기타" for r in all_spots))
+    with col_f2:
+        city_filter = st.selectbox("지역 필터", cities)
+
+    restaurants = all_spots
     if status_filter != "전체":
         restaurants = [r for r in restaurants if r.get("status") == status_filter]
+    if city_filter != "전체":
+        restaurants = [r for r in restaurants if (r.get("region") or r.get("city")) == city_filter]
 
     memo_done = [r for r in res.data if r.get("status") == "메모완료" and r.get("memo", "").strip()]
     if memo_done:
