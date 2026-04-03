@@ -244,15 +244,15 @@ with tab2:
     res = sb.table("spots").select("id, name, english_name, city, region, subway, category, status, memo, rating, content").order("created_at", desc=True).execute()
     all_spots = res.data
 
-    cities = ["전체"] + sorted(set(r.get("region") or r.get("city") or "기타" for r in all_spots))
+    cities = ["전체"] + sorted(set(r.get("city") or "기타" for r in all_spots))
     with col_f2:
-        city_filter = st.selectbox("지역 필터", cities)
+        city_filter = st.selectbox("도시 필터", cities)
 
     restaurants = all_spots
     if status_filter != "전체":
         restaurants = [r for r in restaurants if r.get("status") == status_filter]
     if city_filter != "전체":
-        restaurants = [r for r in restaurants if (r.get("region") or r.get("city")) == city_filter]
+        restaurants = [r for r in restaurants if r.get("city") == city_filter]
 
     memo_done = [r for r in res.data if r.get("status") == "메모완료" and r.get("memo", "").strip()]
     if memo_done:
