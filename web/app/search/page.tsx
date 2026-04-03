@@ -113,13 +113,24 @@ function ChatDrawer({
             </div>
             <span className="text-sm font-bold" style={{ color: "var(--ink)" }}>Ask Bapmap</span>
           </div>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center hover:opacity-60 transition-opacity"
-            style={{ background: "var(--surface)", color: "var(--muted)", fontSize: "14px" }}
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-2">
+            {messages.length > 0 && (
+              <button
+                onClick={() => setMessages([])}
+                className="text-[10px] px-2.5 py-1 rounded-full hover:opacity-70 transition-opacity"
+                style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}
+              >
+                Clear
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="w-7 h-7 rounded-full flex items-center justify-center hover:opacity-60 transition-opacity"
+              style={{ background: "var(--surface)", color: "var(--muted)", fontSize: "14px" }}
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -199,8 +210,18 @@ function SearchPageInner() {
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState(q);
   const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem("bapmap_chat");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const ranRef = useRef(false);
+
+  useEffect(() => {
+    try { localStorage.setItem("bapmap_chat", JSON.stringify(chatMessages)); } catch {}
+  }, [chatMessages]);
 
   const spotsContext = spots
     .filter((s) => s.status === "업로드완료")
