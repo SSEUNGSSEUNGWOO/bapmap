@@ -52,8 +52,8 @@ export default function SpotCard({ spot }: { spot: Spot }) {
     : spot.image_url ? [spot.image_url] : [];
 
   return (
-    <Link href={`/spots/${slug}`} className="group block no-underline">
-      <div className="bg-white rounded-2xl overflow-hidden border border-[var(--border)] group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-200">
+    <Link href={`/spots/${slug}`} className="group block no-underline h-full">
+      <div className="bg-white rounded-2xl overflow-hidden border border-[var(--border)] group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-200 h-full flex flex-col">
         {images.length > 0 ? (
           <SpotCardImage images={images} name={spot.english_name || spot.name} />
         ) : (
@@ -61,7 +61,7 @@ export default function SpotCard({ spot }: { spot: Spot }) {
             <span style={{ fontSize: "2.5rem" }}>🍜</span>
           </div>
         )}
-        <div className="p-4">
+        <div className="p-4 flex flex-col flex-1">
           <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
             {spot.region || spot.city}
           </div>
