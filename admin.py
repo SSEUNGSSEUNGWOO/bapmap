@@ -272,12 +272,19 @@ with tab2:
                     full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
                     generated = generate_post(full_spot)
                     meta = generate_metadata(full_spot)
-                    update = {"content": generated, "status": "업로드완료", "what_to_order": meta.get("what_to_order", []), "good_for": meta.get("good_for", [])}
-                    if meta.get("spice_level") is not None:
-                        update["spice_level"] = meta["spice_level"]
+                    update = {"content": generated, "status": "업로드완료", "what_to_order": meta.get("what_to_order") or [], "good_for": meta.get("good_for") or []}
+                    try:
+                        spice = meta.get("spice_level")
+                        if spice is not None:
+                            update["spice_level"] = int(spice)
+                    except (TypeError, ValueError):
+                        pass
                     sb.table("spots").update(update).eq("id", r["id"]).execute()
                     full_spot["content"] = generated
-                    embed_spot(full_spot)
+                    try:
+                        embed_spot(full_spot)
+                    except Exception as e:
+                        st.warning(f"임베딩 실패 ({name}): {e}")
                 progress.progress((i + 1) / len(memo_done))
             st.success(f"✅ {len(memo_done)}개 완료!")
             st.rerun()
@@ -325,11 +332,18 @@ with tab2:
                             full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
                             generated = generate_post(full_spot)
                             meta = generate_metadata(full_spot)
-                            update = {"content": generated, "status": "업로드완료", "what_to_order": meta.get("what_to_order", []), "good_for": meta.get("good_for", [])}
-                            if meta.get("spice_level") is not None:
-                                update["spice_level"] = meta["spice_level"]
+                            update = {"content": generated, "status": "업로드완료", "what_to_order": meta.get("what_to_order") or [], "good_for": meta.get("good_for") or []}
+                            try:
+                                spice = meta.get("spice_level")
+                                if spice is not None:
+                                    update["spice_level"] = int(spice)
+                            except (TypeError, ValueError):
+                                pass
                             sb.table("spots").update(update).eq("id", r["id"]).execute()
                             full_spot["content"] = generated
-                            embed_spot(full_spot)
+                            try:
+                                embed_spot(full_spot)
+                            except Exception as e:
+                                st.warning(f"임베딩 실패: {e}")
                         st.success("✅ 글 생성 완료! 업로드됨")
                         st.rerun()
