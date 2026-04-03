@@ -7,7 +7,7 @@ from supabase import create_client
 from anthropic import Anthropic
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
-from pipeline.enrich import search_place, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components
+from pipeline.enrich import search_place, search_place_by_url, parse_maps_url, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components
 from pipeline.generator import generate_post, generate_metadata
 from pipeline.rag.embed import embed_spot
 
@@ -63,11 +63,14 @@ tab1, tab2 = st.tabs(["가게 추가", "전체 목록"])
 
 with tab1:
     st.subheader("새 가게 추가")
-    name = st.text_input("가게 이름 (한글)", placeholder="예: 멘야코노하 성수")
-    address_hint = st.text_input("주소 (이름으로 못 찾을 때)", placeholder="예: 서울 성동구 왕십리로4길 10-1")
+    maps_url = st.text_input("Google Maps URL", placeholder="https://www.google.co.kr/maps/place/...")
+    parsed_name, _, _ = parse_maps_url(maps_url) if maps_url else (None, None, None)
+    name = st.text_input("가게 이름 (한글)", value=parsed_name or "", placeholder="예: 멘야코노하 성수")
 
     if st.button("검색", type="primary"):
-        if not name:
+        if not maps_url:
+            st.error("Google Maps URL을 입력해주세요")
+        elif not name:
             st.error("가게 이름을 입력해주세요")
         else:
             existing = sb.table("spots").select("id, status").eq("name", name).execute()
@@ -75,12 +78,9 @@ with tab1:
                 st.warning(f"⚠️ '{name}'은 이미 등록된 가게입니다. (상태: {existing.data[0].get('status', '')})")
                 st.stop()
             with st.spinner(f"{name} 검색 중..."):
-                place = search_place(name)
-                if not place and address_hint:
-                    st.warning("이름으로 못 찾아 주소로 재시도 중...")
-                    place = search_place(address_hint)
+                place = search_place_by_url(maps_url)
                 if not place:
-                    st.error("Google Places에서 찾을 수 없습니다. 주소를 입력해보세요.")
+                    st.error("Google Places에서 찾을 수 없습니다. URL을 확인해주세요.")
                 else:
                     st.session_state["found_place"] = place
                     st.session_state["found_name"] = name

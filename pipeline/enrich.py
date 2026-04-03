@@ -4,6 +4,7 @@ import json
 import math
 import requests
 from pathlib import Path
+from urllib.parse import unquote
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,6 +26,63 @@ PRICE_MAP = {
     "PRICE_LEVEL_EXPENSIVE": "$$$",
     "PRICE_LEVEL_VERY_EXPENSIVE": "$$$$",
 }
+
+
+def parse_maps_url(url: str) -> tuple[str | None, float | None, float | None]:
+    """Google Maps URL에서 가게 이름, 위도, 경도 추출."""
+    name_match = re.search(r'/maps/place/([^/]+)/', url)
+    name = unquote(name_match.group(1)) if name_match else None
+
+    lat_match = re.search(r'!3d(-?\d+\.\d+)', url)
+    lng_match = re.search(r'!4d(-?\d+\.\d+)', url)
+    lat = float(lat_match.group(1)) if lat_match else None
+    lng = float(lng_match.group(1)) if lng_match else None
+
+    return name, lat, lng
+
+
+def search_place_by_url(maps_url: str) -> dict | None:
+    """Google Maps URL로 정확한 장소 조회 (좌표 기반 location bias 사용)."""
+    name, lat, lng = parse_maps_url(maps_url)
+    if not lat or not lng:
+        return None
+
+    fields = ",".join([
+        "places.displayName",
+        "places.formattedAddress",
+        "places.location",
+        "places.rating",
+        "places.userRatingCount",
+        "places.googleMapsUri",
+        "places.regularOpeningHours",
+        "places.photos",
+        "places.primaryType",
+        "places.addressComponents",
+        "places.id",
+        "places.priceLevel",
+        "places.servesVegetarianFood",
+        "places.reservable",
+        "places.goodForGroups",
+        "places.reviews",
+    ])
+    query = name or "restaurant"
+    resp = requests.post(
+        f"{BASE_URL}:searchText",
+        headers={**HEADERS, "X-Goog-FieldMask": fields},
+        json={
+            "textQuery": query,
+            "languageCode": "en",
+            "maxResultCount": 1,
+            "locationBias": {
+                "circle": {
+                    "center": {"latitude": lat, "longitude": lng},
+                    "radius": 100.0,
+                }
+            },
+        },
+    )
+    places = resp.json().get("places", [])
+    return places[0] if places else None
 
 
 def search_place(name: str) -> dict | None:
