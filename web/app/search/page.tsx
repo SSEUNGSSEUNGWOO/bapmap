@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 
 type Spot = {
   id: string;
@@ -148,8 +149,22 @@ export default function SearchPage() {
                     Bapmap AI
                   </span>
                 </div>
-                <div className="text-sm leading-[1.85] whitespace-pre-wrap" style={{ color: "var(--ink)" }}>
-                  {answer}
+                <div className="text-sm leading-[1.85]" style={{ color: "var(--ink)" }}>
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+                      strong: ({ children }) => <strong style={{ color: "var(--ink)", fontWeight: 600 }}>{children}</strong>,
+                      a: ({ href, children }) => (
+                        <Link href={href || "#"} className="no-underline font-semibold hover:opacity-70 transition-opacity" style={{ color: "var(--orange)" }}>
+                          {children}
+                        </Link>
+                      ),
+                      ul: ({ children }) => <ul className="mb-3 space-y-1 pl-4" style={{ listStyleType: "disc", color: "var(--muted)" }}>{children}</ul>,
+                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                    }}
+                  >
+                    {answer}
+                  </ReactMarkdown>
                   {loading && (
                     <span className="inline-block w-0.5 h-4 ml-0.5 align-middle animate-pulse rounded-full" style={{ background: "var(--orange)" }} />
                   )}
