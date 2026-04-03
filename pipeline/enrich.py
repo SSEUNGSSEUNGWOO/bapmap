@@ -5,6 +5,7 @@ import math
 import requests
 from pathlib import Path
 from urllib.parse import unquote
+from unidecode import unidecode
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -124,6 +125,13 @@ def get_korean_address(name: str) -> str:
     )
     places = resp.json().get("places", [])
     return places[0].get("formattedAddress", "") if places else ""
+
+
+def to_english_name(name: str) -> str:
+    """한글이 포함된 이름을 발음 기반 로마자로 변환. 이미 영어면 그대로."""
+    if not any('\uAC00' <= c <= '\uD7A3' for c in name):
+        return name
+    return unidecode(name).title()
 
 
 def clean_english(s: str) -> str:

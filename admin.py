@@ -7,7 +7,7 @@ from supabase import create_client
 from anthropic import Anthropic
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
-from pipeline.enrich import search_place, search_place_by_url, parse_maps_url, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components
+from pipeline.enrich import search_place, search_place_by_url, parse_maps_url, to_english_name, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components
 from pipeline.generator import generate_post, generate_metadata
 from pipeline.rag.embed import embed_spot
 
@@ -92,7 +92,7 @@ with tab1:
         lat = place["location"]["latitude"]
         lng = place["location"]["longitude"]
         city, region = parse_address_components(place.get("addressComponents", []))
-        english_name = place.get("displayName", {}).get("text", "")
+        english_name = to_english_name(place.get("displayName", {}).get("text", "") or name)
         english_address = place.get("formattedAddress", "")
         rating = place.get("rating", 0)
         photos = place.get("photos", [])
@@ -118,8 +118,6 @@ with tab1:
         r1c1, r1c2, r1c3 = st.columns(3)
         with r1c1:
             english_name = st.text_input("영어 이름", value=english_name, key="edit_english_name")
-            if english_name and any('\uAC00' <= c <= '\uD7A3' for c in english_name):
-                st.warning("⚠️ 영어 이름에 한글이 포함되어 있습니다. 영어로 입력해주세요.")
         with r1c2:
             city = st.text_input("도시 (city)", value=city, key="edit_city")
         with r1c3:
