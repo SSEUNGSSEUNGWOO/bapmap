@@ -369,6 +369,7 @@ with tab3:
         g_cover = st.text_input("커버 이미지 URL", key="g_cover")
         g_tag = st.text_input("카테고리 태그", key="g_tag", help="예: Late Night, Budget, Solo")
         g_intro = st.text_area("인트로 문장 (이탤릭으로 표시)", key="g_intro", height=100)
+        g_body = st.text_area("본문 (마크다운)", key="g_body", height=300, help="## 소제목, **굵게**, 일반 텍스트 등 마크다운 사용 가능")
         g_spots = st.text_area(
             "스팟 english_name 목록 (한 줄에 하나)",
             key="g_spots",
@@ -389,6 +390,7 @@ with tab3:
                     "cover_image": g_cover,
                     "category_tag": g_tag,
                     "intro": g_intro,
+                    "body": g_body,
                     "spot_slugs": spot_slugs,
                     "status": g_status,
                 }).execute()
@@ -405,6 +407,7 @@ with tab3:
             e_cover = st.text_input("커버 이미지", value=g.get("cover_image") or "", key=f"ec_{g['id']}")
             e_tag = st.text_input("태그", value=g.get("category_tag") or "", key=f"etag_{g['id']}")
             e_intro = st.text_area("인트로", value=g.get("intro") or "", key=f"ei_{g['id']}", height=100)
+            e_body = st.text_area("본문 (마크다운)", value=g.get("body") or "", key=f"eb_{g['id']}", height=300)
             e_spots = st.text_area(
                 "스팟 목록",
                 value="\n".join(g.get("spot_slugs") or []),
@@ -425,6 +428,7 @@ with tab3:
                         "cover_image": e_cover,
                         "category_tag": e_tag,
                         "intro": e_intro,
+                        "body": e_body,
                         "spot_slugs": spot_slugs,
                         "status": e_status,
                     }).eq("id", g["id"]).execute()

@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SpotCard from "@/app/SpotCard";
 import { Suspense } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export const revalidate = 300;
 
@@ -16,6 +18,7 @@ type Guide = {
   cover_image: string;
   category_tag: string;
   intro: string;
+  body: string;
   spot_slugs: string[];
   created_at: string;
 };
@@ -132,6 +135,46 @@ export default async function GuidePage({
             >
               {g.intro}
             </p>
+          </div>
+        )}
+
+        {/* Body */}
+        {g.body && (
+          <div
+            className="mb-14 prose prose-lg max-w-2xl"
+            style={{
+              color: "var(--ink)",
+              lineHeight: 1.8,
+            }}
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                h2: ({ children }) => (
+                  <h2 className="font-display mt-10 mb-4" style={{ fontSize: "1.6rem", color: "var(--ink)", letterSpacing: "-0.02em" }}>{children}</h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="font-semibold mt-8 mb-3" style={{ fontSize: "1.1rem", color: "var(--ink)" }}>{children}</h3>
+                ),
+                p: ({ children }) => (
+                  <p className="mb-5 leading-relaxed" style={{ color: "var(--ink)" }}>{children}</p>
+                ),
+                strong: ({ children }) => (
+                  <strong style={{ color: "var(--ink)", fontWeight: 700 }}>{children}</strong>
+                ),
+                ul: ({ children }) => (
+                  <ul className="mb-5 pl-5 space-y-1" style={{ color: "var(--muted)" }}>{children}</ul>
+                ),
+                li: ({ children }) => (
+                  <li className="leading-relaxed">{children}</li>
+                ),
+                hr: () => (
+                  <hr className="my-10" style={{ borderColor: "var(--border)" }} />
+                ),
+              }}
+            >
+              {g.body}
+            </ReactMarkdown>
           </div>
         )}
 
