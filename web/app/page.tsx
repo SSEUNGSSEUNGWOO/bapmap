@@ -382,7 +382,7 @@ export default async function Home() {
                   className="font-display m-0"
                   style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}
                 >
-                  Latest Spots
+                  Latest Bapmap Picks
                 </h2>
               </div>
               <Link
