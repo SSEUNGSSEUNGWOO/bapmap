@@ -26,8 +26,8 @@ def chunk_spot(spot: dict) -> dict | None:
     else:
         embed_text = parsed["metadata_text"]
 
-    # 너무 길면 자르기 (OpenAI 8191 토큰 제한, 대략 6000자 안전선)
-    embed_text = embed_text[:6000]
+    # voyage-3 최대 16K 토큰, 대략 12000자 안전선
+    embed_text = embed_text[:12000]
 
     return {
         "id": parsed["id"],

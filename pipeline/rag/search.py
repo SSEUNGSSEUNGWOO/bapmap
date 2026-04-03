@@ -1,101 +1,149 @@
 """
-Stage 4: Search
-자연어 쿼리 → 임베딩 → pgvector 유사도 검색 → Claude 답변 생성
+RAG Search Pipeline
+1. Query Rewriting  — Claude가 쿼리 정제 + 필터 추출
+2. Hybrid Search    — pgvector(voyage-3) + Supabase 풀텍스트 (RRF 결합)
+3. Reranking        — voyage-3 reranker로 최종 순위 조정
+4. Answer           — Claude Haiku가 자연어 답변 생성
 """
 import os
-from dotenv import load_dotenv
-from openai import OpenAI
+import json
+import voyageai
 from anthropic import Anthropic
 from supabase import create_client
+from dotenv import load_dotenv
 
 load_dotenv()
 
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+voyage_client = voyageai.Client(api_key=os.getenv("VOYAGE_API_KEY"))
 anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 sb = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
 
-EMBED_MODEL = "text-embedding-3-small"
+EMBED_MODEL = "voyage-3"
+RERANK_MODEL = "rerank-2"
 
 
-def embed_query(query: str) -> list[float]:
-    res = openai_client.embeddings.create(
-        input=[query.replace("\n", " ")],
-        model=EMBED_MODEL,
+# ── 1. Query Rewriting ──────────────────────────────────────────────────────
+
+REWRITE_PROMPT = """You are a search query optimizer for Bapmap, a Korean restaurant guide.
+
+Given a user's casual query, extract:
+1. "query": clean, specific search query (English, max 20 words)
+2. "region": specific area in Korea if mentioned (e.g. "Gangnam", "Hongdae", "Itaewon", "Seongsu") — null if not mentioned
+3. "category": food type if clearly mentioned (e.g. "Ramen", "Korean BBQ", "Cafe") — null if not mentioned
+
+Return JSON only. No explanation.
+
+Examples:
+User: "i go gangnam i want korean food"
+{"query": "Korean restaurant in Gangnam Seoul", "region": "Gangnam", "category": null}
+
+User: "spicy ramen near hongdae"
+{"query": "spicy ramen Hongdae Seoul", "region": "Hongdae", "category": "Ramen"}
+
+User: "좋은 카페 추천해줘 성수동"
+{"query": "cafe in Seongsu Seoul", "region": "Seongsu", "category": "Cafe"}
+
+User: "where should i eat"
+{"query": "best Korean restaurant Seoul local pick", "region": null, "category": null}"""
+
+
+def rewrite_query(raw_query: str) -> dict:
+    res = anthropic_client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=150,
+        system=REWRITE_PROMPT,
+        messages=[{"role": "user", "content": raw_query}],
     )
-    return res.data[0].embedding
+    try:
+        return json.loads(res.content[0].text)
+    except Exception:
+        return {"query": raw_query, "region": None, "category": None}
 
 
-def similarity_search(query_embedding: list[float], threshold: float = 0.3, count: int = 8) -> list[dict]:
-    res = sb.rpc("match_spots", {
-        "query_embedding": query_embedding,
-        "match_threshold": threshold,
+# ── 2. Hybrid Search ────────────────────────────────────────────────────────
+
+def embed_query(text: str) -> list[float]:
+    result = voyage_client.embed([text], model=EMBED_MODEL, input_type="query")
+    return result.embeddings[0]
+
+
+def hybrid_search(query: str, region: str | None, category: str | None, count: int = 10) -> list[dict]:
+    embedding = embed_query(query)
+    res = sb.rpc("hybrid_search_spots", {
+        "query_text": query,
+        "query_embedding": embedding,
         "match_count": count,
+        "filter_region": region,
+        "filter_category": category,
     }).execute()
     return res.data or []
 
 
-def build_context(spots: list[dict]) -> str:
-    lines = []
+# ── 3. Reranking ────────────────────────────────────────────────────────────
+
+def rerank(query: str, spots: list[dict], top_k: int = 5) -> list[dict]:
+    if not spots:
+        return []
+
+    documents = []
     for s in spots:
         name = s.get("english_name") or s.get("name", "")
-        status = s.get("status", "")
-        sim = round(s.get("similarity", 0), 3)
+        doc = f"{name} | {s.get('category', '')} | {s.get('region') or s.get('city', '')} | ★{s.get('rating', '')}"
+        if s.get("content"):
+            doc += " | " + s["content"][:300]
+        documents.append(doc)
 
-        if status == "업로드완료":
-            lines.append(
-                f"[{name}] ({s.get('category', '')} · {s.get('region') or s.get('city')} · "
-                f"★{s.get('rating', '')} · {s.get('price_level', '')} · 🚇{s.get('subway', '')})\n"
-                f"  slug: {name.lower().replace(' ', '-')}\n"
-                f"  similarity: {sim}"
-            )
-        else:
-            lines.append(
-                f"[{name}] — NOT YET PUBLISHED (coming soon)\n"
-                f"  Location: {s.get('region') or s.get('city')}\n"
-                f"  Category: {s.get('category', '')}\n"
-                f"  similarity: {sim}"
-            )
-    return "\n\n".join(lines)
+    result = voyage_client.rerank(query, documents, model=RERANK_MODEL, top_k=top_k)
+    reranked = [spots[r.index] for r in result.results]
+    return reranked
 
 
-SYSTEM_PROMPT = """You are Bapmap's food concierge — a Korean local food expert helping English-speaking tourists find the best places to eat in Korea.
+# ── 4. Answer Generation ────────────────────────────────────────────────────
 
-You have access to a curated list of spots retrieved from the Bapmap database.
+ANSWER_PROMPT = """You are Bapmap's food concierge — helping English-speaking tourists find the best places to eat in Korea.
 
 Rules:
-- Recommend spots from the retrieved results. Don't make up places.
-- For published spots (has full info): give specific, helpful details (what to order, vibe, subway stop)
-- For "coming soon" spots: mention them briefly as "📍 [Name] — on Bapmap soon" without details
-- Be friendly, direct, and specific. No fluff.
-- If nothing matches well, say so honestly and suggest browsing /spots
-- Links: for published spots, format as /spots/[slug] (lowercase, hyphenated)
-- Keep it to 150-250 words"""
+- Recommend only from the retrieved spots below. Never make up places.
+- Published spots (status=업로드완료): give specific details — what to order, vibe, subway stop, price
+- Unpublished spots (other status): mention briefly as "📍 [Name] — coming soon on Bapmap"
+- Be direct and friendly. No fluff. Like a tip from a Korean friend.
+- For published spots include a link: /spots/[slug]
+- If nothing matches, say so honestly and suggest browsing /spots
+- 150-250 words max"""
 
 
-def search(query: str, stream: bool = False):
-    print(f"\n🔍 검색: {query}\n")
+def build_context(spots: list[dict]) -> str:
+    parts = []
+    for s in spots:
+        name = s.get("english_name") or s.get("name", "")
+        slug = name.lower().replace(" ", "-")
+        status = s.get("status", "")
 
-    # 1. 쿼리 임베딩
-    q_embedding = embed_query(query)
+        if status == "업로드완료":
+            parts.append(
+                f"[PUBLISHED] {name}\n"
+                f"  Category: {s.get('category', '')} | Location: {s.get('region') or s.get('city')} | "
+                f"★{s.get('rating', '')} | {s.get('price_level', '')} | 🚇{s.get('subway', '')}\n"
+                f"  Link: /spots/{slug}\n"
+                f"  Preview: {(s.get('content') or '')[:200]}"
+            )
+        else:
+            parts.append(
+                f"[COMING SOON] {name}\n"
+                f"  Category: {s.get('category', '')} | Location: {s.get('region') or s.get('city')}"
+            )
+    return "\n\n".join(parts)
 
-    # 2. 유사도 검색
-    results = similarity_search(q_embedding)
-    print(f"검색 결과: {len(results)}개\n")
 
-    if not results:
-        return "No matching spots found. Try browsing all spots at /spots"
-
-    # 3. 컨텍스트 빌드
-    context = build_context(results)
-
-    # 4. Claude 답변
-    user_msg = f"User query: {query}\n\nRetrieved spots:\n{context}"
+def answer(query: str, spots: list[dict], stream: bool = False) -> str:
+    context = build_context(spots)
+    user_msg = f"User query: {query}\n\nSpots:\n{context}"
 
     if stream:
         with anthropic_client.messages.stream(
             model="claude-haiku-4-5-20251001",
             max_tokens=400,
-            system=SYSTEM_PROMPT,
+            system=ANSWER_PROMPT,
             messages=[{"role": "user", "content": user_msg}],
         ) as s:
             full = ""
@@ -108,13 +156,46 @@ def search(query: str, stream: bool = False):
         res = anthropic_client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=400,
-            system=SYSTEM_PROMPT,
+            system=ANSWER_PROMPT,
             messages=[{"role": "user", "content": user_msg}],
         )
         return res.content[0].text
 
 
+# ── 메인 파이프라인 ──────────────────────────────────────────────────────────
+
+def search(raw_query: str, stream: bool = False) -> str:
+    print(f"\n🔍 원본 쿼리: {raw_query}")
+
+    # 1. Query Rewriting
+    rewritten = rewrite_query(raw_query)
+    print(f"✏️  정제된 쿼리: {rewritten['query']}")
+    print(f"📍 지역 필터: {rewritten['region']} | 카테고리 필터: {rewritten['category']}\n")
+
+    # 2. Hybrid Search
+    results = hybrid_search(
+        query=rewritten["query"],
+        region=rewritten["region"],
+        category=rewritten["category"],
+        count=10,
+    )
+    print(f"🔎 하이브리드 검색 결과: {len(results)}개")
+
+    if not results:
+        return "No matching spots found. Try browsing all spots at /spots"
+
+    # 3. Reranking
+    reranked = rerank(rewritten["query"], results, top_k=5)
+    print(f"🏆 리랭킹 후: {len(reranked)}개\n")
+    for r in reranked:
+        print(f"  - {r.get('english_name') or r.get('name')} ({r.get('status')})")
+    print()
+
+    # 4. Answer
+    return answer(raw_query, reranked, stream=stream)
+
+
 if __name__ == "__main__":
     import sys
-    query = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "I want korean bbq near hongdae"
-    result = search(query, stream=True)
+    raw = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "i want ramen near hongdae"
+    search(raw, stream=True)

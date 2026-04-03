@@ -1,34 +1,32 @@
 """
-Stage 3: Embedding
-청크 텍스트 → OpenAI 벡터 생성 → Supabase 저장
+Stage 3: Embedding (voyage-3)
+청크 텍스트 → Voyage AI 벡터 생성 → Supabase 저장
 
 실행: python -m pipeline.rag.embed
 옵션:
-  --all       : 전체 스팟 재임베딩
-  --missing   : embedding이 없는 스팟만 (기본값)
-  --id <uuid> : 특정 스팟만
+  --all     : 전체 스팟 재임베딩
+  --missing : embedding이 없는 스팟만 (기본값)
+  --id <uuid>
 """
 import os
 import sys
 import time
 import argparse
+import voyageai
 from dotenv import load_dotenv
-from openai import OpenAI
 from supabase import create_client
 
 load_dotenv()
 
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+voyage_client = voyageai.Client(api_key=os.getenv("VOYAGE_API_KEY"))
 sb = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
 
-EMBED_MODEL = "text-embedding-3-small"
-EMBED_DIM = 1536
+EMBED_MODEL = "voyage-3"
 
 
 def get_embedding(text: str) -> list[float]:
-    text = text.replace("\n", " ").strip()
-    res = openai_client.embeddings.create(input=[text], model=EMBED_MODEL)
-    return res.data[0].embedding
+    result = voyage_client.embed([text], model=EMBED_MODEL, input_type="document")
+    return result.embeddings[0]
 
 
 def embed_spot(spot: dict) -> bool:
@@ -51,8 +49,7 @@ def run(mode: str = "missing", spot_id: str | None = None):
         spots = sb.table("spots").select("*").eq("id", spot_id).execute().data
     elif mode == "all":
         spots = sb.table("spots").select("*").execute().data
-    else:  # missing
-        # embedding IS NULL인 스팟만
+    else:
         spots = sb.table("spots").select("*").is_("embedding", "null").execute().data
 
     print(f"\n임베딩 대상: {len(spots)}개\n")
@@ -65,18 +62,17 @@ def run(mode: str = "missing", spot_id: str | None = None):
                 success += 1
         except Exception as e:
             print(f"  ❌ 오류: {e}")
-        # API rate limit 방지
         if i > 0 and i % 20 == 0:
-            time.sleep(1)
+            time.sleep(0.5)
 
     print(f"\n완료: {success}/{len(spots)}개 임베딩 저장")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--all", action="store_true", help="전체 재임베딩")
-    parser.add_argument("--missing", action="store_true", help="누락된 것만 (기본)")
-    parser.add_argument("--id", type=str, help="특정 spot ID")
+    parser.add_argument("--all", action="store_true")
+    parser.add_argument("--missing", action="store_true")
+    parser.add_argument("--id", type=str)
     args = parser.parse_args()
 
     if args.id:
