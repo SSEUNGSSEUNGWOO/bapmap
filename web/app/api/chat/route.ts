@@ -13,18 +13,19 @@ const sb = createClient(
 async function rewriteQuery(raw: string) {
   const res = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 100,
+    max_tokens: 120,
     system: `Extract from the user query:
 1. "query": clean search query in English (max 15 words)
 2. "region": area in Korea if mentioned — null if not
 3. "category": food type if mentioned — null if not
+4. "needs_spots": true if the user is asking for place/restaurant recommendations, false if it's a general question about food, culture, or Korea (e.g. "what is tteokbokki", "how spicy is buldak", "is Monday busy")
 Return JSON only.`,
     messages: [{ role: "user", content: raw }],
   });
   try {
     return JSON.parse((res.content[0] as { text: string }).text);
   } catch {
-    return { query: raw, region: null, category: null };
+    return { query: raw, region: null, category: null, needs_spots: true };
   }
 }
 
@@ -72,10 +73,13 @@ export async function POST(req: NextRequest) {
         const spots = spotsRes.data || [];
         const guides = guidesRes.data || [];
 
-        // Send spot cards
-        const published = spots.filter((s: Record<string, unknown>) => s.status === "업로드완료");
-        const comingSoon = spots.filter((s: Record<string, unknown>) => s.status !== "업로드완료").slice(0, 2);
-        send({ type: "spots", data: [...published, ...comingSoon].slice(0, 5) });
+        // Send spot cards only when user is asking for recommendations
+        if (rewritten.needs_spots !== false) {
+          const published = spots.filter((s: Record<string, unknown>) => s.status === "업로드완료");
+          const comingSoon = spots.filter((s: Record<string, unknown>) => s.status !== "업로드완료").slice(0, 2);
+          const toShow = [...published, ...comingSoon].slice(0, 5);
+          if (toShow.length > 0) send({ type: "spots", data: toShow });
+        }
 
         // 4. Build context
         const spotsContext = spots.slice(0, 5).map((s: Record<string, unknown>) => {
