@@ -95,15 +95,18 @@ export async function POST(req: NextRequest) {
         send({ type: "spots", data: filteredSpots });
 
         // 3. Build context
-        const spotsContext = filteredSpots.map((s: Record<string, unknown>) => {
-          const name = (s.english_name || s.name) as string;
-          const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-          if (s.status === "업로드완료") {
+        const spotsContext = [
+          ...published.map((s: Record<string, unknown>) => {
+            const name = (s.english_name || s.name) as string;
+            const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
             const memo = String(s.memo || "").slice(0, 200);
             return `[SPOT] ${name} — ${s.category} · ${s.region || s.city} · ★${s.rating} · ${s.price_level} · 🚇${s.subway}\nLink: /spots/${slug}${memo ? `\nWhy: ${memo}` : ""}`;
-          }
-          return `[SPOT - coming soon] ${name} (${s.category} · ${s.region || s.city})`;
-        }).join("\n\n");
+          }),
+          ...comingSoon.map((s: Record<string, unknown>) => {
+            const name = (s.english_name || s.name) as string;
+            return `[SPOT - coming soon] ${name} (${s.category} · ${s.region || s.city})`;
+          }),
+        ].join("\n\n");
 
         // sources 수집 후 전송
         const allSources = Array.from(new Set(

@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 4. Build context
-        const spotsContext = spots.slice(0, 5).map((s: Record<string, unknown>) => {
+        const spotsContext = spots.map((s: Record<string, unknown>) => {
           const name = (s.english_name || s.name) as string;
           const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
           const memo = String(s.memo || "").slice(0, 200);

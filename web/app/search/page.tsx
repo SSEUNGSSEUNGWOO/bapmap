@@ -46,19 +46,18 @@ function ChatDrawer({
     if (!text || streaming) return;
     setInput("");
 
-    const apiMessages = messages.map(({ role, content }) => ({ role, content }));
     const newMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
-    setMessages(newMessages);
+    setMessages([...newMessages, { role: "assistant", content: "" }]);
     setStreaming(true);
 
     let assistantText = "";
     let assistantSpots: Spot[] = [];
-    setMessages([...newMessages, { role: "assistant", content: "" }]);
 
+    const apiMessages = newMessages.map(({ role, content }) => ({ role, content }));
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: [...apiMessages, { role: "user", content: text }] }),
+      body: JSON.stringify({ messages: apiMessages }),
     });
 
     const reader = res.body!.getReader();
