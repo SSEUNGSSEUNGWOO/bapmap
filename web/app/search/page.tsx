@@ -20,18 +20,16 @@ type Spot = {
   content?: string;
 };
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatMessage = { role: "user" | "assistant"; content: string; spots?: Spot[] };
 
 function ChatDrawer({
   open,
   onClose,
-  spotsContext,
   messages,
   setMessages,
 }: {
   open: boolean;
   onClose: () => void;
-  spotsContext: string;
   messages: ChatMessage[];
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }) {
@@ -48,17 +46,19 @@ function ChatDrawer({
     if (!text || streaming) return;
     setInput("");
 
+    const apiMessages = messages.map(({ role, content }) => ({ role, content }));
     const newMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
     setMessages(newMessages);
     setStreaming(true);
 
     let assistantText = "";
+    let assistantSpots: Spot[] = [];
     setMessages([...newMessages, { role: "assistant", content: "" }]);
 
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: newMessages, spotsContext }),
+      body: JSON.stringify({ messages: [...apiMessages, { role: "user", content: text }] }),
     });
 
     const reader = res.body!.getReader();
@@ -71,9 +71,13 @@ function ChatDrawer({
         if (!line.startsWith("data: ")) continue;
         try {
           const msg = JSON.parse(line.slice(6));
+          if (msg.type === "spots") {
+            assistantSpots = msg.data;
+            setMessages([...newMessages, { role: "assistant", content: assistantText, spots: assistantSpots }]);
+          }
           if (msg.type === "text") {
             assistantText += msg.text;
-            setMessages([...newMessages, { role: "assistant", content: assistantText }]);
+            setMessages([...newMessages, { role: "assistant", content: assistantText, spots: assistantSpots }]);
           }
         } catch {}
       }
@@ -141,7 +145,48 @@ function ChatDrawer({
             </div>
           )}
           {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div key={i} className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
+              {/* Spot cards for assistant messages */}
+              {m.role === "assistant" && m.spots && m.spots.length > 0 && (
+                <div className="w-full space-y-2 mb-2">
+                  {m.spots.map((s) => {
+                    const name = s.english_name || s.name;
+                    const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
+                    const published = s.status === "업로드완료";
+                    return published ? (
+                      <Link
+                        key={s.id}
+                        href={`/spots/${slug}`}
+                        className="flex gap-2.5 p-2.5 rounded-xl no-underline hover:shadow-sm transition-all"
+                        style={{ background: "#fff", border: "1px solid var(--border)" }}
+                      >
+                        {s.image_url ? (
+                          <img src={s.image_url} alt={name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "var(--surface)" }}>
+                            <span style={{ fontSize: "1.2rem" }}>🍜</span>
+                          </div>
+                        )}
+                        <div className="flex flex-col justify-center min-w-0">
+                          <div className="text-[9px] font-bold tracking-widest uppercase" style={{ color: "var(--orange)" }}>{s.region || s.city}</div>
+                          <div className="text-xs font-semibold truncate" style={{ color: "var(--ink)" }}>{name}</div>
+                          <div className="text-[10px]" style={{ color: "var(--muted)" }}>★ {s.rating} · {s.category}</div>
+                        </div>
+                      </Link>
+                    ) : (
+                      <div key={s.id} className="flex gap-2.5 p-2.5 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                        <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#eee" }}>
+                          <span style={{ fontSize: "1.2rem" }}>📍</span>
+                        </div>
+                        <div className="flex flex-col justify-center">
+                          <div className="text-xs font-semibold" style={{ color: "var(--muted)" }}>{name}</div>
+                          <div className="text-[10px] font-semibold" style={{ color: "var(--muted)" }}>Coming soon</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               <div
                 className="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed"
                 style={
@@ -223,14 +268,6 @@ function SearchPageInner() {
     try { localStorage.setItem("bapmap_chat", JSON.stringify(chatMessages)); } catch {}
   }, [chatMessages]);
 
-  const spotsContext = spots
-    .filter((s) => s.status === "업로드완료")
-    .map((s) => {
-      const name = s.english_name || s.name;
-      const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-      return `${name} — ${s.category} · ${s.region || s.city} · ★${s.rating}\nLink: /spots/${slug}\n${String(s.content || "").slice(0, 150)}`;
-    })
-    .join("\n\n");
 
   const search = async (raw: string) => {
     if (!raw.trim()) return;
@@ -500,7 +537,6 @@ function SearchPageInner() {
       <ChatDrawer
         open={chatOpen}
         onClose={() => setChatOpen(false)}
-        spotsContext={spotsContext}
         messages={chatMessages}
         setMessages={setChatMessages}
       />
