@@ -118,7 +118,7 @@ function SearchPageInner() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 items-start">
           {/* Left: Answer */}
           <div>
             {/* Loading skeleton */}

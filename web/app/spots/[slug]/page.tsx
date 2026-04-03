@@ -114,9 +114,9 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
       />
       {/* ── 이미지 갤러리 ── */}
       {images.length > 0 && (
-        <div className={`grid gap-2 ${images.length >= 3 ? "grid-cols-3" : images.length === 2 ? "grid-cols-2" : "grid-cols-1"}`} style={{ maxHeight: "480px" }}>
+        <div className={`grid gap-2 ${images.length >= 3 ? "grid-cols-3" : images.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
           {images.slice(0, 3).map((url, i) => (
-            <div key={i} className={`overflow-hidden bg-gray-100 ${images.length === 1 ? "col-span-1" : ""}`} style={{ height: "480px" }}>
+            <div key={i} className={`overflow-hidden bg-gray-100 ${images.length === 1 ? "col-span-1" : ""}`} style={{ height: "clamp(200px, 40vw, 480px)" }}>
               <img
                 src={url}
                 alt={`${spot.english_name || spot.name} ${i + 1}`}

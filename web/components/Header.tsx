@@ -13,6 +13,7 @@ const NAV = [
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const isHome = pathname === "/";
 
@@ -23,7 +24,11 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const transparent = isHome && !scrolled;
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  const transparent = isHome && !scrolled && !menuOpen;
 
   return (
     <header
@@ -37,24 +42,22 @@ export default function Header() {
     >
       <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center no-underline group">
-          <div className="relative overflow-hidden">
-            <Image
-              src="/logo.png"
-              alt="Bapmap"
-              width={110}
-              height={34}
-              style={{
-                objectFit: "contain",
-                filter: transparent ? "brightness(0) invert(1)" : "none",
-                transition: "filter 0.5s ease",
-              }}
-            />
-          </div>
+        <Link href="/" className="flex items-center no-underline">
+          <Image
+            src="/logo.png"
+            alt="Bapmap"
+            width={110}
+            height={34}
+            style={{
+              objectFit: "contain",
+              filter: transparent ? "brightness(0) invert(1)" : "none",
+              transition: "filter 0.5s ease",
+            }}
+          />
         </Link>
 
-        {/* Nav */}
-        <nav className="flex items-center gap-1">
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-1">
           {NAV.map(({ label, href }) => {
             const active = pathname === href;
             return (
@@ -63,55 +66,80 @@ export default function Header() {
                 href={href}
                 className="relative no-underline px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 rounded-full"
                 style={{
-                  color: transparent
-                    ? active ? "#fff" : "rgba(255,255,255,0.7)"
-                    : active ? "var(--orange)" : "var(--muted)",
+                  color: transparent ? (active ? "#fff" : "rgba(255,255,255,0.7)") : (active ? "var(--orange)" : "var(--muted)"),
                   background: active && !transparent ? "rgba(245,166,35,0.08)" : "transparent",
                   letterSpacing: "0.04em",
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
                     (e.currentTarget as HTMLElement).style.color = transparent ? "#fff" : "var(--orange)";
-                    (e.currentTarget as HTMLElement).style.background = transparent
-                      ? "rgba(255,255,255,0.12)"
-                      : "rgba(245,166,35,0.08)";
+                    (e.currentTarget as HTMLElement).style.background = transparent ? "rgba(255,255,255,0.12)" : "rgba(245,166,35,0.08)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!active) {
-                    (e.currentTarget as HTMLElement).style.color = transparent
-                      ? "rgba(255,255,255,0.7)"
-                      : "var(--muted)";
+                    (e.currentTarget as HTMLElement).style.color = transparent ? "rgba(255,255,255,0.7)" : "var(--muted)";
                     (e.currentTarget as HTMLElement).style.background = "transparent";
                   }
                 }}
               >
                 {label}
                 {active && !transparent && (
-                  <span
-                    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-                    style={{ background: "var(--orange)" }}
-                  />
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full" style={{ background: "var(--orange)" }} />
                 )}
               </Link>
             );
           })}
-
-          {/* CTA */}
           <Link
             href="/search"
-            className="ml-3 no-underline px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-all duration-200 hover:opacity-80 hover:scale-[0.97]"
-            style={{
-              background: "var(--orange)",
-              color: "#fff",
-              letterSpacing: "0.04em",
-              boxShadow: "0 2px 12px rgba(245,166,35,0.35)",
-            }}
+            className="ml-3 no-underline px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-all duration-200 hover:opacity-80"
+            style={{ background: "var(--orange)", color: "#fff", boxShadow: "0 2px 12px rgba(245,166,35,0.35)" }}
           >
             Search ✦
           </Link>
         </nav>
+
+        {/* Mobile: Search + Hamburger */}
+        <div className="flex md:hidden items-center gap-2">
+          <Link
+            href="/search"
+            className="no-underline w-9 h-9 rounded-full flex items-center justify-center"
+            style={{ background: "var(--orange)" }}
+          >
+            <span className="text-white text-xs font-bold">✦</span>
+          </Link>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-full transition-all"
+            style={{ background: transparent ? "rgba(255,255,255,0.15)" : "var(--surface)", border: "1px solid " + (transparent ? "rgba(255,255,255,0.3)" : "var(--border)") }}
+          >
+            <span className="block w-4 h-0.5 transition-all" style={{ background: transparent ? "#fff" : "var(--ink)", transform: menuOpen ? "rotate(45deg) translate(2px, 2px)" : "none" }} />
+            <span className="block h-0.5 transition-all" style={{ background: transparent ? "#fff" : "var(--ink)", width: menuOpen ? "1rem" : "0.75rem", opacity: menuOpen ? 0 : 1 }} />
+            <span className="block w-4 h-0.5 transition-all" style={{ background: transparent ? "#fff" : "var(--ink)", transform: menuOpen ? "rotate(-45deg) translate(2px, -2px)" : "none" }} />
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {menuOpen && (
+        <div className="md:hidden border-t" style={{ background: "rgba(255,255,255,0.97)", borderColor: "var(--border)" }}>
+          <div className="px-6 py-4 flex flex-col gap-1">
+            {NAV.map(({ label, href }) => (
+              <Link
+                key={href}
+                href={href}
+                className="no-underline py-3 px-4 rounded-xl text-sm font-semibold transition-all"
+                style={{
+                  color: pathname === href ? "var(--orange)" : "var(--ink)",
+                  background: pathname === href ? "rgba(245,166,35,0.08)" : "transparent",
+                }}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

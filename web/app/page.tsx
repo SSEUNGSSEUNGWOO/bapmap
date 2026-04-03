@@ -95,7 +95,7 @@ export default async function Home() {
 
       {/* ── NAV CARDS (overlapping hero) ── */}
       <div className="relative z-10 px-6" style={{ marginTop: "-110px" }}>
-        <div className="max-w-4xl mx-auto grid grid-cols-3 gap-4">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
               title: "Spots",
@@ -163,7 +163,7 @@ export default async function Home() {
       {/* ── STATS ── */}
       <section className="bg-white" style={{ paddingTop: "6rem", paddingBottom: "5rem" }}>
         <div className="max-w-4xl mx-auto px-6">
-          <div className="grid grid-cols-4 gap-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-0">
             {[
               { value: `${spotCount ?? 0}+`, label: "Spots Curated" },
               { value: "5+", label: "Cities" },
@@ -210,7 +210,7 @@ export default async function Home() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
               {
                 num: "01",
@@ -274,7 +274,7 @@ export default async function Home() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Seoul - active */}
           <Link
             href="/spots"
@@ -394,7 +394,7 @@ export default async function Home() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {recent.map((spot) => (
                 <SpotCard key={spot.id} spot={spot as Spot} />
               ))}
