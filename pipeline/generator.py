@@ -61,10 +61,11 @@ Length: 650-850 words."""
 
 METADATA_PROMPT = """You are analyzing a Korean restaurant for Bapmap, a guide for English-speaking tourists.
 
-Based on the spot data below, return a JSON object with exactly these two fields:
+Based on the spot data below, return a JSON object with exactly these three fields:
 
 1. "what_to_order": array of 2-3 strings. Each is a dish recommendation like "Samgyeopsal (pork belly) — the thick-cut version here is exceptional". If menu is unknown, infer from category and reviews.
 2. "good_for": array of tags from this list only: ["Solo dining", "Groups", "Date night", "Quick lunch", "Late night", "Vegetarian-friendly", "Budget-friendly", "Special occasion", "No reservations needed", "Reservation recommended"]
+3. "spice_level": integer 0-3. Judge by category, menu, and reviews. 0=not spicy, 1=mild, 2=medium, 3=hot. Most Korean BBQ/meat places are 0. Tteokbokki, spicy ramen, buldak, jjamppong are 2-3.
 
 Return JSON only. No explanation.
 
