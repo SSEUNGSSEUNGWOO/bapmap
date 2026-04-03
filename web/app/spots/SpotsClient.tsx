@@ -97,7 +97,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
   return (
     <div>
       {/* 검색 + 필터 */}
-      <div className="mb-10 space-y-4">
+      <div className="mb-10 space-y-3">
         {/* 검색창 */}
         <div className="relative">
           <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" style={{ color: "var(--muted)" }}>
@@ -109,69 +109,46 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
             value={query}
             onChange={(e) => handleFilterChange(() => setQuery(e.target.value))}
             className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none"
-            style={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              color: "var(--ink)",
-            }}
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--ink)" }}
           />
           {query && (
             <button onClick={() => handleFilterChange(() => setQuery(""))} className="absolute right-4 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--muted)" }}>✕</button>
           )}
         </div>
 
-        {/* 정렬 */}
+        {/* 드롭다운 필터 한 줄 */}
         <div className="flex gap-2">
-          {(["newest", "rating", "name"] as SortOption[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => handleFilterChange(() => setSort(s))}
-              className="text-xs font-semibold px-4 py-2 rounded-full transition-all"
-              style={{
-                background: sort === s ? "var(--ink)" : "var(--surface)",
-                color: sort === s ? "#fff" : "var(--muted)",
-                border: `1px solid ${sort === s ? "var(--ink)" : "var(--border)"}`,
-              }}
-            >
-              {s === "newest" ? "Newest" : s === "rating" ? "Top Rated" : "A–Z"}
-            </button>
-          ))}
-        </div>
+          {/* 정렬 */}
+          <select
+            value={sort}
+            onChange={(e) => handleFilterChange(() => setSort(e.target.value as SortOption))}
+            className="text-xs font-semibold px-3 py-2 rounded-xl outline-none cursor-pointer"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--ink)" }}
+          >
+            <option value="newest">Newest</option>
+            <option value="rating">Top Rated</option>
+            <option value="name">A–Z</option>
+          </select>
 
-        {/* 카테고리 필터 */}
-        <div className="flex gap-2 flex-wrap">
-          {categories.map((c) => (
-            <button
-              key={c}
-              onClick={() => handleFilterChange(() => setActiveCategory(c))}
-              className="text-xs font-semibold px-4 py-2 rounded-full transition-all"
-              style={{
-                background: activeCategory === c ? "var(--ink)" : "var(--surface)",
-                color: activeCategory === c ? "#fff" : "var(--muted)",
-                border: `1px solid ${activeCategory === c ? "var(--ink)" : "var(--border)"}`,
-              }}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+          {/* 카테고리 */}
+          <select
+            value={activeCategory}
+            onChange={(e) => handleFilterChange(() => setActiveCategory(e.target.value))}
+            className="text-xs font-semibold px-3 py-2 rounded-xl outline-none cursor-pointer flex-1"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: activeCategory !== "All" ? "var(--orange)" : "var(--ink)" }}
+          >
+            {categories.map((c) => <option key={c} value={c}>{c === "All" ? "All Categories" : c}</option>)}
+          </select>
 
-        {/* 지역 필터 */}
-        <div className="flex gap-2 flex-wrap">
-          {regions.map((r) => (
-            <button
-              key={r}
-              onClick={() => handleFilterChange(() => setActiveRegion(r))}
-              className="text-xs font-semibold px-4 py-2 rounded-full transition-all"
-              style={{
-                background: activeRegion === r ? "var(--orange)" : "var(--surface)",
-                color: activeRegion === r ? "#fff" : "var(--muted)",
-                border: `1px solid ${activeRegion === r ? "var(--orange)" : "var(--border)"}`,
-              }}
-            >
-              {r}
-            </button>
-          ))}
+          {/* 지역 */}
+          <select
+            value={activeRegion}
+            onChange={(e) => handleFilterChange(() => setActiveRegion(e.target.value))}
+            className="text-xs font-semibold px-3 py-2 rounded-xl outline-none cursor-pointer flex-1"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: activeRegion !== "All" ? "var(--orange)" : "var(--ink)" }}
+          >
+            {regions.map((r) => <option key={r} value={r}>{r === "All" ? "All Areas" : r}</option>)}
+          </select>
         </div>
       </div>
 

@@ -116,7 +116,7 @@ export default async function Home() {
               desc: "Bad at English. Great at eating. The story behind Bapmap.",
               href: "/about",
               img: "/card-about.jpg",
-              badge: "Our story",
+              badge: "My story",
             },
           ].map((card) => (
             <Link
