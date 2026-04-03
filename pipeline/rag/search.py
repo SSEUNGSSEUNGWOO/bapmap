@@ -7,19 +7,18 @@ RAG Search Pipeline
 """
 import os
 import json
-import voyageai
+from openai import OpenAI
 from anthropic import Anthropic
 from supabase import create_client
 from dotenv import load_dotenv
 
 load_dotenv()
 
-voyage_client = voyageai.Client(api_key=os.getenv("VOYAGE_API_KEY"))
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 sb = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
 
-EMBED_MODEL = "voyage-3"
-RERANK_MODEL = "rerank-2"
+EMBED_MODEL = "text-embedding-3-small"
 
 
 # ── 1. Query Rewriting ──────────────────────────────────────────────────────
@@ -63,8 +62,8 @@ def rewrite_query(raw_query: str) -> dict:
 # ── 2. Hybrid Search ────────────────────────────────────────────────────────
 
 def embed_query(text: str) -> list[float]:
-    result = voyage_client.embed([text], model=EMBED_MODEL, input_type="query")
-    return result.embeddings[0]
+    res = openai_client.embeddings.create(input=[text.replace("\n", " ")], model=EMBED_MODEL)
+    return res.data[0].embedding
 
 
 def hybrid_search(query: str, region: str | None, category: str | None, count: int = 10) -> list[dict]:
@@ -84,18 +83,32 @@ def hybrid_search(query: str, region: str | None, category: str | None, count: i
 def rerank(query: str, spots: list[dict], top_k: int = 5) -> list[dict]:
     if not spots:
         return []
+    if len(spots) <= top_k:
+        return spots
 
-    documents = []
+    docs = []
     for s in spots:
         name = s.get("english_name") or s.get("name", "")
         doc = f"{name} | {s.get('category', '')} | {s.get('region') or s.get('city', '')} | ★{s.get('rating', '')}"
         if s.get("content"):
-            doc += " | " + s["content"][:300]
-        documents.append(doc)
+            doc += " | " + s["content"][:200]
+        docs.append(doc)
 
-    result = voyage_client.rerank(query, documents, model=RERANK_MODEL, top_k=top_k)
-    reranked = [spots[r.index] for r in result.results]
-    return reranked
+    numbered = "\n".join(f"{i}: {d}" for i, d in enumerate(docs))
+    res = anthropic_client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=60,
+        messages=[{"role": "user", "content":
+            f"Query: {query}\n\nSpots:\n{numbered}\n\n"
+            f"Return the {top_k} most relevant spot indices as JSON array only. Example: [2,0,4,1,3]"
+        }],
+    )
+    try:
+        import json as _json
+        indices = _json.loads(res.content[0].text.strip())
+        return [spots[i] for i in indices if i < len(spots)]
+    except Exception:
+        return spots[:top_k]
 
 
 # ── 4. Answer Generation ────────────────────────────────────────────────────

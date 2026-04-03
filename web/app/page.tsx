@@ -2,6 +2,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Spot } from "@/lib/supabase";
 import SpotCard from "./SpotCard";
+import SearchBar from "./SearchBar";
 
 export const revalidate = 3600;
 
@@ -76,20 +77,9 @@ export default async function Home() {
             Follow the locals. Eat like one.
           </p>
 
-          {/* CTA */}
-          <div className="animate-fadeUp delay-4 mt-10">
-            <Link
-              href="/spots"
-              className="inline-flex items-center gap-2 no-underline font-semibold text-sm px-7 py-3 rounded-full transition-all duration-200 hover:gap-3"
-              style={{
-                background: "var(--orange)",
-                color: "#fff",
-                boxShadow: "0 0 0 1px rgba(245,166,35,0.4), 0 8px 32px rgba(245,166,35,0.35)",
-              }}
-            >
-              Browse All Spots
-              <span style={{ fontSize: "1em" }}>→</span>
-            </Link>
+          {/* Search */}
+          <div className="animate-fadeUp delay-4 mt-10 w-full px-4" style={{ maxWidth: "520px" }}>
+            <SearchBar />
           </div>
         </div>
 
