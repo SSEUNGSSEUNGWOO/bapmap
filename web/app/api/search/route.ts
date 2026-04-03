@@ -99,7 +99,8 @@ export async function POST(req: NextRequest) {
           const name = (s.english_name || s.name) as string;
           const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
           if (s.status === "업로드완료") {
-            return `[SPOT] ${name} — ${s.category} · ${s.region || s.city} · ★${s.rating} · ${s.price_level} · 🚇${s.subway}\nLink: /spots/${slug}\n${String(s.content || "").slice(0, 150)}`;
+            const memo = String(s.memo || "").slice(0, 200);
+            return `[SPOT] ${name} — ${s.category} · ${s.region || s.city} · ★${s.rating} · ${s.price_level} · 🚇${s.subway}\nLink: /spots/${slug}${memo ? `\nWhy: ${memo}` : ""}`;
           }
           return `[SPOT - coming soon] ${name} (${s.category} · ${s.region || s.city})`;
         }).join("\n\n");
@@ -135,6 +136,7 @@ You have two types of context:
 Rules:
 - Use GUIDE context to give cultural/area context
 - Use SPOT context for actual restaurant recommendations
+- For every spot you recommend, include a specific reason WHY — what makes it worth going (a signature dish, the vibe, the price, a local secret, the location relevance). Never just name-drop a place without explaining it.
 - Never make up places or spots not in the context
 - Coming soon spots: mention as "📍 [Name] — on Bapmap soon"
 - Friendly, specific, like a tip from a Korean local. 150-220 words.`,
