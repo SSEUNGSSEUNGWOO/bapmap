@@ -74,6 +74,8 @@ Spot data:
 
 
 def generate_metadata(restaurant: dict) -> dict:
+    raw_reviews = restaurant.get("google_reviews", []) or []
+    reviews_sample = [str(r)[:200] for r in raw_reviews[:3]]
     data = {
         "name": restaurant.get("english_name") or restaurant["name"],
         "category": restaurant.get("category", ""),
@@ -82,15 +84,15 @@ def generate_metadata(restaurant: dict) -> dict:
         "vegetarian": restaurant.get("vegetarian", False),
         "reservable": restaurant.get("reservable", False),
         "good_for_groups": restaurant.get("good_for_groups", False),
-        "curator_note": restaurant.get("memo") or "",
-        "google_reviews_sample": restaurant.get("google_reviews", [])[:3],
+        "curator_note": (restaurant.get("memo") or "")[:300],
+        "google_reviews_sample": reviews_sample,
     }
-    response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=400,
-        messages=[{"role": "user", "content": METADATA_PROMPT.format(data=json.dumps(data, ensure_ascii=False))}]
-    )
     try:
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=400,
+            messages=[{"role": "user", "content": METADATA_PROMPT.format(data=json.dumps(data, ensure_ascii=False))}]
+        )
         text = response.content[0].text.strip()
         if text.startswith("```"):
             text = text.split("```")[1]
