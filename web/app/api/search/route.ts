@@ -89,10 +89,13 @@ export async function POST(req: NextRequest) {
             : Promise.resolve([]),
         ]);
 
-        send({ type: "spots", data: spots.slice(0, 5) });
+        const published = spots.filter((s: Record<string, unknown>) => s.status === "업로드완료");
+        const comingSoon = spots.filter((s: Record<string, unknown>) => s.status !== "업로드완료").slice(0, 2);
+        const filteredSpots = [...published, ...comingSoon].slice(0, 5);
+        send({ type: "spots", data: filteredSpots });
 
         // 3. Build context
-        const spotsContext = spots.slice(0, 5).map((s: Record<string, unknown>) => {
+        const spotsContext = filteredSpots.map((s: Record<string, unknown>) => {
           const name = (s.english_name || s.name) as string;
           const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
           if (s.status === "업로드완료") {
