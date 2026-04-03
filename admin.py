@@ -308,13 +308,11 @@ with tab2:
 
             memo = st.text_area("메모 (내부용)", value=r.get("memo") or "", key=f"memo_{r['id']}")
             content = st.text_area("본문 (사이트 표시)", value=r.get("content") or "", height=200, key=f"content_{r['id']}")
-            status = st.selectbox("상태", ["메모필요", "메모완료", "업로드완료"],
-                                  index=["메모필요", "메모완료", "업로드완료"].index(r.get("status", "메모필요")),
-                                  key=f"status_{r['id']}")
             col_save, col_gen = st.columns([1, 1])
             with col_save:
                 if st.button("저장", key=f"save_{r['id']}"):
-                    sb.table("spots").update({"memo": memo, "content": content, "status": status, "region": new_region, "subway": new_subway, "category": new_category, "spice_level": new_spice if new_spice > 0 else None}).eq("id", r["id"]).execute()
+                    auto_status = "업로드완료" if content.strip() else ("메모완료" if memo.strip() else "메모필요")
+                    sb.table("spots").update({"memo": memo, "content": content, "status": auto_status, "region": new_region, "subway": new_subway, "category": new_category, "spice_level": new_spice if new_spice > 0 else None}).eq("id", r["id"]).execute()
                     st.success("저장됨!")
                     st.rerun()
             with col_gen:
