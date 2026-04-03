@@ -126,12 +126,15 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
         if (!props) return;
         const coords = (e.features![0].geometry as GeoJSON.Point).coordinates as [number, number];
         popup.current?.remove();
-        popup.current = new mapboxgl.Popup({ offset: 12, maxWidth: "200px", closeButton: false, closeOnClick: false })
+        popup.current = new mapboxgl.Popup({ offset: 12, maxWidth: "220px", closeButton: false, closeOnClick: false })
           .setLngLat(coords)
           .setHTML(`
-            <div style="padding:8px 10px;font-family:inherit;">
-              <div style="font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">${props.name}</div>
-              <div style="font-size:11px;color:#888;">★ ${props.rating} · ${props.category}</div>
+            <div style="font-family:inherit;overflow:hidden;border-radius:10px;">
+              ${props.image_url ? `<img src="${props.image_url}" style="width:100%;height:110px;object-fit:cover;display:block;" />` : ""}
+              <div style="padding:8px 10px;">
+                <div style="font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">${props.name}</div>
+                <div style="font-size:11px;color:#888;">★ ${props.rating} · ${props.category}</div>
+              </div>
             </div>
           `)
           .addTo(m);
