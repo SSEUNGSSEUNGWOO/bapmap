@@ -404,23 +404,30 @@ export default async function Home() {
       )}
 
       {/* ── BOTTOM CTA ── */}
-      <section className="text-center" style={{ paddingTop: "5rem", paddingBottom: "5rem" }}>
-        <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-4" style={{ color: "var(--orange)" }}>
-          Ready to eat?
-        </p>
-        <h2
-          className="font-display mb-6"
-          style={{ fontSize: "clamp(2rem,5vw,3rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}
-        >
-          Find your next meal in Korea
-        </h2>
-        <Link
-          href="/spots"
-          className="inline-flex items-center gap-2 no-underline font-semibold text-sm px-8 py-3.5 rounded-full text-white transition-all duration-200 hover:opacity-85"
-          style={{ background: "var(--orange)", boxShadow: "0 4px 24px rgba(245,166,35,0.4)" }}
-        >
-          Browse All Spots →
-        </Link>
+      <section className="relative text-center overflow-hidden" style={{ paddingTop: "7rem", paddingBottom: "7rem" }}>
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/seoul-cta.jpg')", backgroundPosition: "center 60%" }}
+        />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.7))" }} />
+        <div className="relative z-10">
+          <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-4" style={{ color: "var(--orange)" }}>
+            Ready to eat?
+          </p>
+          <h2
+            className="font-display mb-6 text-white"
+            style={{ fontSize: "clamp(2rem,5vw,3rem)", letterSpacing: "-0.02em" }}
+          >
+            Find your next meal in Korea
+          </h2>
+          <Link
+            href="/spots"
+            className="inline-flex items-center gap-2 no-underline font-semibold text-sm px-8 py-3.5 rounded-full text-white transition-all duration-200 hover:opacity-85"
+            style={{ background: "var(--orange)", boxShadow: "0 4px 24px rgba(245,166,35,0.4)" }}
+          >
+            Browse All Spots →
+          </Link>
+        </div>
       </section>
     </div>
   );
