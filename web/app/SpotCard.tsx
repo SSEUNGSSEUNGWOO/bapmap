@@ -65,8 +65,11 @@ export default function SpotCard({ spot }: { spot: Spot }) {
           <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
             {spot.region || spot.city}
           </div>
-          <div className="font-semibold text-sm mb-2 line-clamp-2" style={{ color: "var(--ink)" }}>{spot.english_name || spot.name}</div>
-          <div className="flex items-center gap-3">
+          <div className="font-semibold text-sm mb-1.5 line-clamp-2" style={{ color: "var(--ink)" }}>{spot.english_name || spot.name}</div>
+          {spot.tagline && (
+            <p className="text-xs italic mb-2 line-clamp-1" style={{ color: "var(--muted)" }}>"{spot.tagline}"</p>
+          )}
+          <div className="flex items-center gap-3 mt-auto">
             <span className="text-xs" style={{ color: "var(--muted)" }}>★ {spot.rating}</span>
             {spot.price_level && <span className="text-xs" style={{ color: "var(--muted)" }}>{spot.price_level}</span>}
           </div>

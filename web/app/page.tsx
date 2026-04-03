@@ -9,7 +9,7 @@ export const revalidate = 300;
 export default async function Home() {
   const { data: recent } = await supabase
     .from("spots")
-    .select("id, name, english_name, city, region, image_url, image_urls, rating, price_level, subway")
+    .select("id, name, english_name, city, region, image_url, image_urls, rating, price_level, subway, tagline")
     .eq("status", "업로드완료")
     .order("created_at", { ascending: false })
     .limit(6);
@@ -257,6 +257,43 @@ export default async function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── WHAT ARE YOU IN THE MOOD FOR ── */}
+      <section className="max-w-4xl mx-auto px-6" style={{ paddingTop: "5rem", paddingBottom: "5rem" }}>
+        <div className="mb-10">
+          <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3" style={{ color: "var(--orange)" }}>Browse by food type</p>
+          <h2 className="font-display m-0" style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}>
+            Eat by mood
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: "Korean BBQ", slug: "korean-bbq", img: "https://images.unsplash.com/photo-1708388066811-906f2f678a84?w=600&q=80" },
+            { label: "Noodles", slug: "noodles", img: "https://images.unsplash.com/photo-1743419612786-19d116bb8c40?w=600&q=80" },
+            { label: "Korean Soup", slug: "korean-soup", img: "https://images.unsplash.com/photo-1572171579626-e79450374587?w=600&q=80" },
+            { label: "Seafood", slug: "seafood", img: "https://images.unsplash.com/photo-1758384075930-6e3835d22b1d?w=600&q=80" },
+            { label: "Gopchang", slug: "gopchang", img: "https://images.unsplash.com/photo-1567932783552-e305bbf70b63?w=600&q=80" },
+            { label: "Tteokbokki", slug: "tteokbokki", img: "https://images.unsplash.com/photo-1635363638580-c2809d049eee?w=600&q=80" },
+            { label: "Bakery & Cafe", slug: "bakery-cafe", img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80" },
+            { label: "Bar", slug: "bar", img: "https://images.unsplash.com/photo-1759663802834-5df7ae5b08de?w=600&q=80" },
+          ].map(({ label, slug, img }) => (
+            <Link
+              key={label}
+              href={`/cities/seoul/${slug}`}
+              className="group block no-underline rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.1)" }}
+            >
+              <div className="relative" style={{ height: "160px" }}>
+                <img src={img} alt={label} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 60%)" }} />
+                <div className="absolute bottom-0 left-0 p-4">
+                  <span className="font-display text-white font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>{label}</span>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 

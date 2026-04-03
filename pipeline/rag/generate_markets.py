@@ -202,7 +202,7 @@ def get_embedding(text: str) -> list[float]:
 
 
 def run(overwrite: bool = False):
-    existing = {r["slug"] for r in sb.table("guides").select("slug").execute().data}
+    existing = {r["slug"] for r in sb.table("rag_data").select("slug").execute().data}
     targets = [m for m in MARKETS if overwrite or m["slug"] not in existing]
 
     print(f"\n시장 가이드 생성: {len(targets)}개\n")
@@ -216,7 +216,7 @@ def run(overwrite: bool = False):
             if get_wikipedia_summary(item["wiki"]):
                 sources.append("Wikipedia")
 
-            sb.table("guides").upsert({
+            sb.table("rag_data").upsert({
                 "title": item["title"],
                 "area": item["area"],
                 "slug": item["slug"],

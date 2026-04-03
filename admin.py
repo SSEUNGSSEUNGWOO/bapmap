@@ -30,36 +30,39 @@ PRICE_MAP = {
 }
 
 CATEGORY_MAP = {
-    "ramen_restaurant": "Ramen",
-    "japanese_restaurant": "Japanese",
     "korean_restaurant": "Korean",
+    "korean_barbecue_restaurant": "Korean BBQ",
+    "barbecue_restaurant": "Korean BBQ",
+    "steak_house": "Korean BBQ",
+    "japanese_restaurant": "Japanese",
+    "ramen_restaurant": "Noodles",
+    "noodle_restaurant": "Noodles",
+    "sushi_restaurant": "Japanese",
+    "izakaya_restaurant": "Japanese",
     "chinese_restaurant": "Chinese",
     "italian_restaurant": "Italian",
-    "french_restaurant": "French",
-    "thai_restaurant": "Thai",
-    "vietnamese_restaurant": "Vietnamese",
-    "pizza_restaurant": "Pizza",
-    "hamburger_restaurant": "Burger",
-    "cafe": "Cafe",
-    "coffee_shop": "Cafe",
-    "bakery": "Bakery",
-    "bar": "Bar",
-    "wine_bar": "Wine Bar",
-    "izakaya_restaurant": "Japanese",
-    "sushi_restaurant": "Japanese",
+    "pizza_restaurant": "Italian",
+    "french_restaurant": "Western",
+    "american_restaurant": "Western",
+    "hamburger_restaurant": "Western",
+    "fast_food_restaurant": "Western",
+    "thai_restaurant": "Asian",
+    "vietnamese_restaurant": "Asian",
     "seafood_restaurant": "Seafood",
-    "steak_house": "Korean BBQ",
-    "barbecue_restaurant": "Korean BBQ",
-    "noodle_restaurant": "Noodles",
+    "cafe": "Bakery & Cafe",
+    "coffee_shop": "Bakery & Cafe",
+    "bakery": "Bakery & Cafe",
+    "bar": "Bar",
+    "wine_bar": "Bar",
     "chicken_wings_restaurant": "Chicken",
-    "fast_food_restaurant": "Burger",
     "restaurant": "Korean",
+    "meal_takeaway": "Korean",
 }
 
 st.set_page_config(page_title="Bapmap Admin", page_icon="🍚", layout="wide")
 st.title("🍚 Bapmap Admin")
 
-tab1, tab2 = st.tabs(["가게 추가", "전체 목록"])
+tab1, tab2, tab3 = st.tabs(["가게 추가", "전체 목록", "Guides"])
 
 with tab1:
     st.subheader("새 가게 추가")
@@ -124,13 +127,10 @@ with tab1:
             region = st.text_input("지역 (region)", value=region, key="edit_region")
 
         CATEGORIES = [
-            "Bakery", "Bar", "Buckwheat Noodles", "Burger", "Cafe", "Chinese", "Chicken",
-            "Chicken Feet", "Dak Galbi", "French", "Galbi", "Gopchang", "Hangover Soup",
-            "Italian", "Japanese", "Kimbap", "Korean", "Korean BBQ", "Korean Chicken Soup",
-            "Korean Soup", "Lamb", "Lamb Skewers", "Makchang", "Makgeolli Bar", "Mulhoe",
-            "Noodles", "Pizza", "Pork Bone Soup", "Ramen", "Raw Fish", "Seafood",
-            "Soft Tofu", "Spicy Squid", "Sundae", "Sundae Soup", "Teppanyaki",
-            "Thai", "Tofu", "Tonkatsu", "Tteokbokki", "Vietnamese", "Western", "Wine Bar",
+            "Asian", "Bakery & Cafe", "Bar", "Chinese", "Chicken",
+            "Gopchang", "Italian", "Japanese", "Korean", "Korean BBQ",
+            "Korean Soup", "Noodles", "Seafood", "Street Food",
+            "Tteokbokki", "Western",
         ]
 
         r2c1, r2c2, r2c3 = st.columns(3)
@@ -303,7 +303,13 @@ with tab2:
             with loc_col2:
                 new_subway = st.text_input("지하철역 (subway)", value=r.get("subway") or "", key=f"subway_{r['id']}")
             with loc_col3:
-                new_category = st.text_input("카테고리", value=r.get("category") or "", key=f"category_{r['id']}")
+                _all_cats = ["Asian", "Bakery & Cafe", "Bar", "Chinese", "Chicken",
+                             "Gopchang", "Italian", "Japanese", "Korean", "Korean BBQ",
+                             "Korean Soup", "Noodles", "Seafood", "Street Food",
+                             "Tteokbokki", "Western"]
+                _cur = r.get("category") or ""
+                _idx = _all_cats.index(_cur) if _cur in _all_cats else 0
+                new_category = st.selectbox("카테고리", _all_cats, index=_idx, key=f"category_{r['id']}")
 
             new_spice = st.select_slider(
                 "매운맛",
@@ -347,3 +353,84 @@ with tab2:
                                 st.warning(f"임베딩 실패: {e}")
                         st.success("✅ 글 생성 완료! 업로드됨")
                         st.rerun()
+
+# ── TAB 3: GUIDES ──────────────────────────────────────────
+with tab3:
+    st.subheader("Guides 관리")
+
+    guides_res = sb.table("guides").select("*").order("created_at", desc=True).execute()
+    guides_data = guides_res.data or []
+
+    # 새 가이드 작성
+    with st.expander("➕ 새 가이드 작성", expanded=len(guides_data) == 0):
+        g_title = st.text_input("제목", key="g_title")
+        g_slug = st.text_input("Slug (URL)", key="g_slug", help="예: late-night-seoul")
+        g_subtitle = st.text_area("부제 (카드에 표시)", key="g_subtitle", height=80)
+        g_cover = st.text_input("커버 이미지 URL", key="g_cover")
+        g_tag = st.text_input("카테고리 태그", key="g_tag", help="예: Late Night, Budget, Solo")
+        g_intro = st.text_area("인트로 문장 (이탤릭으로 표시)", key="g_intro", height=100)
+        g_spots = st.text_area(
+            "스팟 english_name 목록 (한 줄에 하나)",
+            key="g_spots",
+            height=150,
+            help="예:\nPark Makrye Cheongjin-dong Haejangguk\nDaesung Jib"
+        )
+        g_status = st.selectbox("상태", ["draft", "published"], key="g_status")
+
+        if st.button("저장", key="save_guide"):
+            if not g_title or not g_slug:
+                st.error("제목과 Slug는 필수")
+            else:
+                spot_slugs = [s.strip() for s in g_spots.strip().splitlines() if s.strip()]
+                sb.table("guides").upsert({
+                    "slug": g_slug,
+                    "title": g_title,
+                    "subtitle": g_subtitle,
+                    "cover_image": g_cover,
+                    "category_tag": g_tag,
+                    "intro": g_intro,
+                    "spot_slugs": spot_slugs,
+                    "status": g_status,
+                }).execute()
+                st.success(f"✅ '{g_title}' 저장 완료")
+                st.rerun()
+
+    st.divider()
+
+    # 기존 가이드 목록
+    for g in guides_data:
+        with st.expander(f"{'🟢' if g.get('status') == 'published' else '⚪'} {g['title']} — /{g['slug']}"):
+            e_title = st.text_input("제목", value=g["title"], key=f"et_{g['id']}")
+            e_subtitle = st.text_area("부제", value=g.get("subtitle") or "", key=f"es_{g['id']}", height=80)
+            e_cover = st.text_input("커버 이미지", value=g.get("cover_image") or "", key=f"ec_{g['id']}")
+            e_tag = st.text_input("태그", value=g.get("category_tag") or "", key=f"etag_{g['id']}")
+            e_intro = st.text_area("인트로", value=g.get("intro") or "", key=f"ei_{g['id']}", height=100)
+            e_spots = st.text_area(
+                "스팟 목록",
+                value="\n".join(g.get("spot_slugs") or []),
+                key=f"esp_{g['id']}",
+                height=150
+            )
+            e_status = st.selectbox("상태", ["draft", "published"],
+                index=0 if g.get("status") == "draft" else 1,
+                key=f"est_{g['id']}")
+
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                if st.button("업데이트", key=f"upd_{g['id']}"):
+                    spot_slugs = [s.strip() for s in e_spots.strip().splitlines() if s.strip()]
+                    sb.table("guides").update({
+                        "title": e_title,
+                        "subtitle": e_subtitle,
+                        "cover_image": e_cover,
+                        "category_tag": e_tag,
+                        "intro": e_intro,
+                        "spot_slugs": spot_slugs,
+                        "status": e_status,
+                    }).eq("id", g["id"]).execute()
+                    st.success("✅ 업데이트 완료")
+                    st.rerun()
+            with col2:
+                if st.button("🗑️ 삭제", key=f"del_{g['id']}"):
+                    sb.table("guides").delete().eq("id", g["id"]).execute()
+                    st.rerun()

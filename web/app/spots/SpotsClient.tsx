@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Spot } from "@/lib/supabase";
 
@@ -53,9 +54,10 @@ type SortOption = "newest" | "rating" | "name";
 const PAGE_SIZE = 9;
 
 export default function SpotsClient({ spots }: { spots: Spot[] }) {
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [activeRegion, setActiveRegion] = useState("All");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "All");
   const [sort, setSort] = useState<SortOption>("newest");
   const [page, setPage] = useState(1);
 

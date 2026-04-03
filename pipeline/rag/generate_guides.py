@@ -208,7 +208,7 @@ def get_embedding(text: str) -> list[float]:
 
 
 def run(overwrite: bool = False):
-    existing = {r["slug"] for r in sb.table("guides").select("slug").execute().data}
+    existing = {r["slug"] for r in sb.table("rag_data").select("slug").execute().data}
     targets = [a for a in AREAS if overwrite or a["slug"] not in existing]
 
     print(f"\n생성 대상: {len(targets)}개 (전체 {len(AREAS)}개)\n")
@@ -224,7 +224,7 @@ def run(overwrite: bool = False):
             if get_google_places_nearby(area["lat"], area["lng"]):
                 sources.append("Google Places")
 
-            sb.table("guides").upsert({
+            sb.table("rag_data").upsert({
                 "title": area["title"],
                 "area": area["area"],
                 "slug": area["slug"],

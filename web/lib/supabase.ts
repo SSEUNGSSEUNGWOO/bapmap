@@ -28,6 +28,7 @@ export type Spot = {
   reservable: boolean;
   good_for_groups: boolean;
   memo: string;
+  tagline: string;
   content: string;
   status: string;
   created_at: string;
