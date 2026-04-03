@@ -218,12 +218,19 @@ def run(overwrite: bool = False):
         try:
             content = generate_guide(area)
             embedding = get_embedding(f"{area['title']}\n{area['area']} Seoul\n{content}")
+            sources = ["Claude AI"]
+            if get_wikipedia_summary(area["wiki"]):
+                sources.append("Wikipedia")
+            if get_google_places_nearby(area["lat"], area["lng"]):
+                sources.append("Google Places")
+
             sb.table("guides").upsert({
                 "title": area["title"],
                 "area": area["area"],
                 "slug": area["slug"],
                 "content": content,
                 "embedding": embedding,
+                "sources": sources,
             }, on_conflict="slug").execute()
             print(f"  ✅ 저장 ({len(content)}자)")
             time.sleep(0.3)

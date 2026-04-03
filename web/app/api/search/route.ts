@@ -101,6 +101,12 @@ export async function POST(req: NextRequest) {
           return `[SPOT - coming soon] ${name} (${s.category} · ${s.region || s.city})`;
         }).join("\n\n");
 
+        // sources 수집 후 전송
+        const allSources = Array.from(new Set(
+          guides.flatMap((g: Record<string, unknown>) => (g.sources as string[]) || [])
+        ));
+        if (allSources.length > 0) send({ type: "sources", data: allSources });
+
         const guidesContext = guides.map((g: Record<string, unknown>) =>
           `[GUIDE - ${g.type === "kculture" ? "K-culture" : "Area Guide"}] ${g.title}\n${String(g.content || "").slice(0, 300)}`
         ).join("\n\n");

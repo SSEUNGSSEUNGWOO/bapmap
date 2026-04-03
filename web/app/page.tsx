@@ -79,6 +79,9 @@ export default async function Home() {
 
           {/* Search */}
           <div className="animate-fadeUp delay-4 mt-10 w-full px-4" style={{ maxWidth: "520px" }}>
+            <p className="text-white/80 text-xs text-center mb-3 tracking-wide">
+              ✦ AI-powered · Ask anything about Korean food & culture
+            </p>
             <SearchBar />
           </div>
         </div>

@@ -118,6 +118,8 @@ with tab1:
         r1c1, r1c2, r1c3 = st.columns(3)
         with r1c1:
             english_name = st.text_input("영어 이름", value=english_name, key="edit_english_name")
+            if english_name and any('\uAC00' <= c <= '\uD7A3' for c in english_name):
+                st.warning("⚠️ 영어 이름에 한글이 포함되어 있습니다. 영어로 입력해주세요.")
         with r1c2:
             city = st.text_input("도시 (city)", value=city, key="edit_city")
         with r1c3:

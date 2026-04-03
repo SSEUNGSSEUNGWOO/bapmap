@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -19,11 +19,12 @@ type Spot = {
   image_url: string;
 };
 
-export default function SearchPage() {
+function SearchPageInner() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") || "";
   const [answer, setAnswer] = useState("");
   const [spots, setSpots] = useState<Spot[]>([]);
+  const [sources, setSources] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState(q);
   const ranRef = useRef(false);
@@ -33,6 +34,7 @@ export default function SearchPage() {
     setLoading(true);
     setAnswer("");
     setSpots([]);
+    setSources([]);
     ranRef.current = true;
 
     const res = await fetch("/api/search", {
@@ -53,6 +55,7 @@ export default function SearchPage() {
         try {
           const msg = JSON.parse(line.slice(6));
           if (msg.type === "spots") setSpots(msg.data);
+          if (msg.type === "sources") setSources(msg.data);
           if (msg.type === "text") setAnswer((prev) => prev + msg.text);
         } catch {}
       }
@@ -176,6 +179,18 @@ export default function SearchPage() {
               </div>
             )}
 
+            {/* Sources */}
+            {!loading && sources.length > 0 && (
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: "var(--muted)" }}>Sources</span>
+                {sources.map((s, i) => (
+                  <span key={i} className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}>
+                    {s}
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Back link */}
             {!loading && answer && (
               <Link href="/" className="inline-flex items-center gap-1 text-xs no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--muted)" }}>
@@ -260,5 +275,13 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense>
+      <SearchPageInner />
+    </Suspense>
   );
 }

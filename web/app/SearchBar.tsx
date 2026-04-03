@@ -13,10 +13,9 @@ export default function SearchBar() {
   };
 
   const suggestions = [
-    "spicy food near Hongdae",
+    "I'm a K-pop fan in Seoul",
     "ramen in Seongsu",
-    "Korean BBQ for groups",
-    "cheap eats in Gangnam",
+    "Korean BBQ Hongdae",
   ];
 
   return (
@@ -27,13 +26,15 @@ export default function SearchBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="e.g. spicy ramen near Hongdae..."
-          className="w-full rounded-full px-6 py-4 pr-14 text-sm outline-none"
+          autoComplete="off"
+          suppressHydrationWarning
+          className="w-full rounded-full px-6 py-4 pr-14 text-sm outline-none placeholder-white/50"
           style={{
-            background: "rgba(255,255,255,0.12)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid rgba(255,255,255,0.25)",
+            background: "rgba(255,255,255,0.18)",
+            backdropFilter: "blur(20px)",
+            border: "1.5px solid rgba(255,255,255,0.6)",
             color: "#fff",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+            boxShadow: "0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2)",
           }}
         />
         <button

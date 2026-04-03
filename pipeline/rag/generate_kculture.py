@@ -216,6 +216,10 @@ def run(overwrite: bool = False):
         try:
             content = generate_guide(item)
             embedding = get_embedding(f"{item['title']}\n{item['area']}\n{content}")
+            sources = ["Claude AI"]
+            if get_wikipedia_summary(item["wiki"]):
+                sources.append("Wikipedia")
+
             sb.table("guides").upsert({
                 "title": item["title"],
                 "area": item["area"],
@@ -223,6 +227,7 @@ def run(overwrite: bool = False):
                 "content": content,
                 "embedding": embedding,
                 "type": "kculture",
+                "sources": sources,
             }, on_conflict="slug").execute()
             print(f"  ✅ 저장 ({len(content)}자)")
             time.sleep(0.3)
