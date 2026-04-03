@@ -4,7 +4,7 @@ import json
 import math
 import requests
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import unquote_plus
 from unidecode import unidecode
 from dotenv import load_dotenv
 
@@ -32,7 +32,7 @@ PRICE_MAP = {
 def parse_maps_url(url: str) -> tuple[str | None, float | None, float | None]:
     """Google Maps URL에서 가게 이름, 위도, 경도 추출."""
     name_match = re.search(r'/maps/place/([^/]+)/', url)
-    name = unquote(name_match.group(1)) if name_match else None
+    name = clean_name(unquote_plus(name_match.group(1))) if name_match else None
 
     lat_match = re.search(r'!3d(-?\d+\.\d+)', url)
     lng_match = re.search(r'!4d(-?\d+\.\d+)', url)
@@ -127,8 +127,14 @@ def get_korean_address(name: str) -> str:
     return places[0].get("formattedAddress", "") if places else ""
 
 
+def clean_name(name: str) -> str:
+    """이름에서 + 제거, 앞뒤 공백 정리."""
+    return name.replace("+", " ").strip() if name else name
+
+
 def to_english_name(name: str) -> str:
     """한글이 포함된 이름을 발음 기반 로마자로 변환. 이미 영어면 그대로."""
+    name = clean_name(name)
     if not any('\uAC00' <= c <= '\uD7A3' for c in name):
         return name
     return unidecode(name).title()
