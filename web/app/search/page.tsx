@@ -26,12 +26,15 @@ function ChatDrawer({
   open,
   onClose,
   spotsContext,
+  messages,
+  setMessages,
 }: {
   open: boolean;
   onClose: () => void;
   spotsContext: string;
+  messages: ChatMessage[];
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -196,6 +199,7 @@ function SearchPageInner() {
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState(q);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const ranRef = useRef(false);
 
   const spotsContext = spots
@@ -213,7 +217,6 @@ function SearchPageInner() {
     setAnswer("");
     setSpots([]);
     setSources([]);
-    setChatOpen(false);
     ranRef.current = true;
 
     const res = await fetch("/api/search", {
@@ -370,20 +373,11 @@ function SearchPageInner() {
               </div>
             )}
 
-            {/* Ask more button */}
+            {/* Back link */}
             {!loading && answer && (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setChatOpen(true)}
-                  className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full transition-all hover:opacity-80"
-                  style={{ background: "var(--orange)", color: "#fff" }}
-                >
-                  <span>✦</span> Ask a follow-up
-                </button>
-                <Link href="/" className="inline-flex items-center gap-1 text-xs no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--muted)" }}>
-                  ← Back to home
-                </Link>
-              </div>
+              <Link href="/" className="inline-flex items-center gap-1 text-xs no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--muted)" }}>
+                ← Back to home
+              </Link>
             )}
           </div>
 
@@ -459,10 +453,35 @@ function SearchPageInner() {
         </div>
       </div>
 
+      {/* Floating chat button */}
+      <button
+        onClick={() => setChatOpen((v) => !v)}
+        className="fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+        style={{ background: chatOpen ? "var(--ink)" : "var(--orange)" }}
+        aria-label="Chat"
+      >
+        {chatOpen ? (
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M2 2L16 16M16 2L2 16" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
+          </svg>
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+        {!chatOpen && chatMessages.length > 0 && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center" style={{ background: "#fff", color: "var(--orange)" }}>
+            {chatMessages.length}
+          </span>
+        )}
+      </button>
+
       <ChatDrawer
         open={chatOpen}
         onClose={() => setChatOpen(false)}
         spotsContext={spotsContext}
+        messages={chatMessages}
+        setMessages={setChatMessages}
       />
     </div>
   );
