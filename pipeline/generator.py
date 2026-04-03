@@ -59,6 +59,47 @@ GEO: be specific and citable — exact minutes, exact hours, concrete dish descr
 Length: 650-850 words."""
 
 
+METADATA_PROMPT = """You are analyzing a Korean restaurant for Bapmap, a guide for English-speaking tourists.
+
+Based on the spot data below, return a JSON object with exactly these two fields:
+
+1. "what_to_order": array of 2-3 strings. Each is a dish recommendation like "Samgyeopsal (pork belly) — the thick-cut version here is exceptional". If menu is unknown, infer from category and reviews.
+2. "good_for": array of tags from this list only: ["Solo dining", "Groups", "Date night", "Quick lunch", "Late night", "Vegetarian-friendly", "Budget-friendly", "Special occasion", "No reservations needed", "Reservation recommended"]
+
+Return JSON only. No explanation.
+
+Spot data:
+{data}"""
+
+
+def generate_metadata(restaurant: dict) -> dict:
+    data = {
+        "name": restaurant.get("english_name") or restaurant["name"],
+        "category": restaurant.get("category", ""),
+        "region": restaurant.get("region") or restaurant.get("city", ""),
+        "price_level": restaurant.get("price_level", ""),
+        "vegetarian": restaurant.get("vegetarian", False),
+        "reservable": restaurant.get("reservable", False),
+        "good_for_groups": restaurant.get("good_for_groups", False),
+        "curator_note": restaurant.get("memo") or "",
+        "google_reviews_sample": restaurant.get("google_reviews", [])[:3],
+    }
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=400,
+        messages=[{"role": "user", "content": METADATA_PROMPT.format(data=json.dumps(data, ensure_ascii=False))}]
+    )
+    try:
+        text = response.content[0].text.strip()
+        if text.startswith("```"):
+            text = text.split("```")[1]
+            if text.startswith("json"):
+                text = text[4:]
+        return json.loads(text.strip())
+    except Exception:
+        return {"what_to_order": [], "good_for": []}
+
+
 def generate_post(restaurant: dict) -> str:
     data = {
         "name": restaurant["name"],

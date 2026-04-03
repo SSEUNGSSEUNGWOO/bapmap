@@ -171,6 +171,35 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
 
         <div className="border-t border-[var(--border)] mb-8" />
 
+        {/* What to Order */}
+        {Array.isArray(spot.what_to_order) && spot.what_to_order.length > 0 && (
+          <div className="mb-8 p-5 rounded-2xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: "var(--orange)" }}>What to Order</p>
+            <ul className="space-y-2">
+              {spot.what_to_order.map((item: string, i: number) => (
+                <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "var(--ink)" }}>
+                  <span style={{ color: "var(--orange)", flexShrink: 0 }}>✦</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Good For */}
+        {Array.isArray(spot.good_for) && spot.good_for.length > 0 && (
+          <div className="mb-8">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: "var(--orange)" }}>Good For</p>
+            <div className="flex flex-wrap gap-2">
+              {spot.good_for.map((tag: string, i: number) => (
+                <span key={i} className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* 본문 글 */}
         {spot.content ? (
           <div className="mb-10 prose-content">

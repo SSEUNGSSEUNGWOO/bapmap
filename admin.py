@@ -8,7 +8,7 @@ from anthropic import Anthropic
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
 from pipeline.enrich import search_place, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components
-from pipeline.generator import generate_post
+from pipeline.generator import generate_post, generate_metadata
 from pipeline.rag.embed import embed_spot
 
 load_dotenv()
@@ -255,7 +255,8 @@ with tab2:
                 with st.spinner(f"{name} 생성 중... ({i+1}/{len(memo_done)})"):
                     full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
                     generated = generate_post(full_spot)
-                    sb.table("spots").update({"content": generated, "status": "업로드완료"}).eq("id", r["id"]).execute()
+                    meta = generate_metadata(full_spot)
+                    sb.table("spots").update({"content": generated, "status": "업로드완료", "what_to_order": meta.get("what_to_order", []), "good_for": meta.get("good_for", [])}).eq("id", r["id"]).execute()
                     full_spot["content"] = generated
                     embed_spot(full_spot)
                 progress.progress((i + 1) / len(memo_done))
@@ -286,7 +287,8 @@ with tab2:
                             sb.table("spots").update({"memo": memo}).eq("id", r["id"]).execute()
                             full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
                             generated = generate_post(full_spot)
-                            sb.table("spots").update({"content": generated, "status": "업로드완료"}).eq("id", r["id"]).execute()
+                            meta = generate_metadata(full_spot)
+                            sb.table("spots").update({"content": generated, "status": "업로드완료", "what_to_order": meta.get("what_to_order", []), "good_for": meta.get("good_for", [])}).eq("id", r["id"]).execute()
                             full_spot["content"] = generated
                             embed_spot(full_spot)
                         st.success("✅ 글 생성 완료! 업로드됨")
