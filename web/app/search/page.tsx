@@ -431,11 +431,26 @@ function SearchPageInner() {
               </div>
             )}
 
-            {/* Back link */}
+            {/* More / Back */}
             {!loading && answer && (
-              <Link href="/" className="inline-flex items-center gap-1 text-xs no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--muted)" }}>
-                ← Back to home
-              </Link>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setChatMessages([
+                      { role: "user", content: q },
+                      { role: "assistant", content: answer, spots },
+                    ]);
+                    setChatOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full transition-all hover:opacity-80"
+                  style={{ background: "var(--orange)", color: "#fff" }}
+                >
+                  More →
+                </button>
+                <Link href="/" className="inline-flex items-center gap-1 text-xs no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--muted)" }}>
+                  ← Back to home
+                </Link>
+              </div>
             )}
           </div>
 
