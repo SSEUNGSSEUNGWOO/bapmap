@@ -155,7 +155,11 @@ export default function SearchPage() {
                       p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
                       strong: ({ children }) => <strong style={{ color: "var(--ink)", fontWeight: 600 }}>{children}</strong>,
                       a: ({ href, children }) => (
-                        <Link href={href || "#"} className="no-underline font-semibold hover:opacity-70 transition-opacity" style={{ color: "var(--orange)" }}>
+                        <Link
+                          href={href || "#"}
+                          className="font-semibold underline underline-offset-2 hover:opacity-70 transition-opacity"
+                          style={{ color: "var(--orange)", textDecorationColor: "var(--orange)" }}
+                        >
                           {children}
                         </Link>
                       ),

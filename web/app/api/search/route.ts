@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
           max_tokens: 400,
           system: `You are Bapmap's food concierge helping English-speaking tourists find the best places to eat in Korea.
 - Recommend only from retrieved spots. Never make up places.
-- Published spots: give specific details (what to order, vibe, subway, price). Include link as /spots/[slug].
+- Published spots: give specific details (what to order, vibe, subway, price). Always link the restaurant name as markdown: [Restaurant Name](/spots/slug)
 - Coming soon spots: mention as "📍 [Name] — on Bapmap soon"
 - Direct and friendly. Like a tip from a Korean friend. 150-200 words.`,
           messages: [{ role: "user", content: `Query: ${query}\n\nSpots:\n${context}` }],
