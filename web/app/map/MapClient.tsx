@@ -119,35 +119,37 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
         });
       });
 
-      // Popup on individual pin click
-      m.on("click", "unclustered-point", (e) => {
+      // Hover tooltip
+      m.on("mouseenter", "unclustered-point", (e) => {
+        m.getCanvas().style.cursor = "pointer";
         const props = e.features?.[0]?.properties;
         if (!props) return;
         const coords = (e.features![0].geometry as GeoJSON.Point).coordinates as [number, number];
-
         popup.current?.remove();
-        popup.current = new mapboxgl.Popup({ offset: 14, maxWidth: "240px", closeButton: true })
+        popup.current = new mapboxgl.Popup({ offset: 12, maxWidth: "200px", closeButton: false, closeOnClick: false })
           .setLngLat(coords)
           .setHTML(`
-            <div style="width:220px; font-family:inherit;">
-              ${props.image_url ? `<img src="${props.image_url}" style="width:100%;height:120px;object-fit:cover;border-radius:8px 8px 0 0;display:block;" />` : ""}
-              <div style="padding:10px 12px 12px;">
-                <div style="font-size:9px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#F5A623;margin-bottom:4px;">${props.region}</div>
-                <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:6px;line-height:1.3;">${props.name}</div>
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                  <span style="font-size:11px;color:#888;">★ ${props.rating} · ${props.category}</span>
-                  <a href="/spots/${props.slug}" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:#F5A623;color:#fff;text-decoration:none;">View →</a>
-                </div>
-              </div>
+            <div style="padding:8px 10px;font-family:inherit;">
+              <div style="font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">${props.name}</div>
+              <div style="font-size:11px;color:#888;">★ ${props.rating} · ${props.category}</div>
             </div>
           `)
           .addTo(m);
       });
 
+      m.on("mouseleave", "unclustered-point", () => {
+        m.getCanvas().style.cursor = "";
+        popup.current?.remove();
+      });
+
+      // Click → navigate to spot page
+      m.on("click", "unclustered-point", (e) => {
+        const slug = e.features?.[0]?.properties?.slug;
+        if (slug) window.location.href = `/spots/${slug}`;
+      });
+
       m.on("mouseenter", "clusters", () => { m.getCanvas().style.cursor = "pointer"; });
       m.on("mouseleave", "clusters", () => { m.getCanvas().style.cursor = ""; });
-      m.on("mouseenter", "unclustered-point", () => { m.getCanvas().style.cursor = "pointer"; });
-      m.on("mouseleave", "unclustered-point", () => { m.getCanvas().style.cursor = ""; });
     });
   }, [spots]);
 
