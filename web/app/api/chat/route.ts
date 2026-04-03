@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
         // 5. Stream answer
         const msgStream = anthropic.messages.stream({
-          model: "claude-sonnet-4-6",
+          model: "claude-haiku-4-5-20251001",
           max_tokens: 250,
           system: `You are Bapmap's food guide for English-speaking tourists in Korea.
 ${context ? `\nContext:\n${context}\n` : ""}
