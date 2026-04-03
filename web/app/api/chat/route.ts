@@ -10,23 +10,10 @@ const sb = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 );
 
-async function rewriteQuery(raw: string) {
-  const res = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 120,
-    system: `Extract from the user query:
-1. "query": clean search query in English (max 15 words)
-2. "region": area in Korea if mentioned — null if not
-3. "category": food type if mentioned — null if not
-4. "needs_spots": true if the user is asking for place/restaurant recommendations, false if it's a general question about food, culture, or Korea (e.g. "what is tteokbokki", "how spicy is buldak", "is Monday busy")
-Return JSON only.`,
-    messages: [{ role: "user", content: raw }],
-  });
-  try {
-    return JSON.parse((res.content[0] as { text: string }).text);
-  } catch {
-    return { query: raw, region: null, category: null, needs_spots: true };
-  }
+const PLACE_KEYWORDS = /where|recommend|best|good|eat|try|go|restaurant|cafe|bar|place|spot|food|near|around|in \w+dong|in \w+gu/i;
+
+function needsSpots(query: string): boolean {
+  return PLACE_KEYWORDS.test(query);
 }
 
 export async function POST(req: NextRequest) {
@@ -44,24 +31,21 @@ export async function POST(req: NextRequest) {
       };
 
       try {
-        // 1. Rewrite query
-        const rewritten = await rewriteQuery(userQuery);
-
-        // 2. Embed
+        // 1. Embed raw query (no rewrite — saves one Anthropic call)
         const embRes = await openai.embeddings.create({
           model: "text-embedding-3-small",
-          input: rewritten.query.replace(/\n/g, " "),
+          input: userQuery.replace(/\n/g, " "),
         });
         const embedding = embRes.data[0].embedding;
 
-        // 3. Search in parallel
+        // 2. Search in parallel
         const [spotsRes, guidesRes] = await Promise.all([
           sb.rpc("hybrid_search_spots", {
-            query_text: rewritten.query,
+            query_text: userQuery,
             query_embedding: embedding,
             match_count: 5,
-            filter_region: rewritten.region || null,
-            filter_category: rewritten.category || null,
+            filter_region: null,
+            filter_category: null,
           }),
           sb.rpc("search_guides", {
             query_embedding: embedding,
@@ -73,43 +57,43 @@ export async function POST(req: NextRequest) {
         const spots = spotsRes.data || [];
         const guides = guidesRes.data || [];
 
-        // Send spot cards only when user is asking for recommendations
-        if (rewritten.needs_spots !== false) {
+        // 3. Send spot cards only for place-seeking queries
+        if (needsSpots(userQuery)) {
           const published = spots.filter((s: Record<string, unknown>) => s.status === "업로드완료");
           const comingSoon = spots.filter((s: Record<string, unknown>) => s.status !== "업로드완료").slice(0, 2);
           const toShow = [...published, ...comingSoon].slice(0, 5);
           if (toShow.length > 0) send({ type: "spots", data: toShow });
         }
 
-        // 4. Build context
+        // 4. Build context (trimmed to reduce input tokens)
         const spotsContext = spots.map((s: Record<string, unknown>) => {
           const name = (s.english_name || s.name) as string;
           const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-          const memo = String(s.memo || "").slice(0, 200);
+          const memo = String(s.memo || "").slice(0, 150);
           if (s.status === "업로드완료") {
-            return `[SPOT] ${name} — ${s.category} · ${s.region || s.city} · ★${s.rating} · ${s.price_level}\nLink: /spots/${slug}${memo ? `\nWhy: ${memo}` : ""}`;
+            return `[SPOT] ${name} — ${s.category} · ${s.region || s.city} · ★${s.rating}\nLink: /spots/${slug}${memo ? `\nWhy: ${memo}` : ""}`;
           }
-          return `[SPOT - coming soon] ${name} (${s.category} · ${s.region || s.city})`;
+          return `[SPOT] ${name} (coming soon · ${s.category} · ${s.region || s.city})`;
         }).join("\n\n");
 
         const guidesContext = guides.map((g: Record<string, unknown>) =>
-          `[GUIDE] ${g.title}\n${String(g.content || "").slice(0, 300)}`
+          `[GUIDE] ${g.title}\n${String(g.content || "").slice(0, 200)}`
         ).join("\n\n");
 
         const context = [spotsContext, guidesContext].filter(Boolean).join("\n\n---\n\n");
 
-        // 5. Stream answer with full conversation history
+        // 5. Stream answer
         const msgStream = anthropic.messages.stream({
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 300,
+          max_tokens: 250,
           system: `You are Bapmap's food guide for English-speaking tourists in Korea.
-${context ? `\nRelevant context:\n${context}\n` : ""}
+${context ? `\nContext:\n${context}\n` : ""}
 Rules:
 - ONLY answer questions about Korean food, restaurants, travel in Korea, neighborhoods, K-culture related to food/places.
 - If unrelated (coding, politics, math, etc.), respond: "I'm only here to help with food and travel in Korea 🍜"
-- For every spot you mention, explain WHY — a specific dish, vibe, price, or what makes it stand out.
+- For every spot you mention, explain WHY — a specific dish, vibe, or what makes it stand out.
 - Reference spots with markdown links: [Name](/spots/slug)
-- Friendly, specific, concise. Max 180 words.`,
+- Concise. Max 150 words.`,
           messages,
         });
 

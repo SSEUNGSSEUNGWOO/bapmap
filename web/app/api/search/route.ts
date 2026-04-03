@@ -14,14 +14,8 @@ const sb = createClient(
 async function rewriteQuery(raw: string) {
   const res = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 150,
-    system: `You are a search query optimizer for Bapmap, a Korean food and culture guide.
-Extract from the user query:
-1. "query": clean search query in English (max 20 words)
-2. "region": area in Korea if mentioned (e.g. "Gangnam", "Hongdae", "Itaewon", "Seongsu") — null if not
-3. "category": food type if clearly mentioned (e.g. "Ramen", "Korean BBQ", "Cafe") — null if not
-4. "intent": "food" if looking for restaurants, "culture" if asking about K-pop/drama/areas, "both" otherwise
-Return JSON only.`,
+    max_tokens: 80,
+    system: `Extract from the query. Return JSON only with keys: "query" (English, max 15 words), "region" (Korean area or null), "category" (food type or null), "intent" ("food"|"culture"|"both").`,
     messages: [{ role: "user", content: raw }],
   });
   try {
@@ -129,7 +123,7 @@ export async function POST(req: NextRequest) {
         // 4. Stream answer
         const msgStream = anthropic.messages.stream({
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 450,
+          max_tokens: 350,
           system: `You are Bapmap's guide for English-speaking tourists in Korea — covering food, K-pop, K-drama, and local culture.
 
 You have two types of context:
