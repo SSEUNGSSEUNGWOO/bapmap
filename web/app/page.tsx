@@ -4,7 +4,7 @@ import type { Spot } from "@/lib/supabase";
 import SpotCard from "./SpotCard";
 import SearchBar from "./SearchBar";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 export default async function Home() {
   const { data: recent } = await supabase

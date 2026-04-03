@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import type { Spot } from "@/lib/supabase";
 import SpotsClient from "./SpotsClient";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 export default async function SpotsPage() {
   const { data: spots } = await supabase
