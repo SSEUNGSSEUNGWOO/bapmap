@@ -239,7 +239,7 @@ with tab2:
 
     status_filter = st.selectbox("상태 필터", ["전체", "메모필요", "메모완료", "업로드완료"])
 
-    res = sb.table("spots").select("id, name, english_name, city, status, memo, rating, content").order("created_at", desc=True).execute()
+    res = sb.table("spots").select("id, name, english_name, city, region, subway, category, status, memo, rating, content").order("created_at", desc=True).execute()
     restaurants = res.data
 
     if status_filter != "전체":
@@ -266,7 +266,19 @@ with tab2:
     st.write(f"총 {len(restaurants)}개")
 
     for r in restaurants:
-        with st.expander(f"{r['name']} ({r.get('english_name', '')}) — {r.get('status', '')} | ★{r.get('rating', '')}"):
+        location = r.get("region") or r.get("city") or ""
+        subway = r.get("subway") or ""
+        category = r.get("category") or ""
+        with st.expander(f"{r['name']} ({r.get('english_name', '')}) — {r.get('status', '')} | ★{r.get('rating', '')} | {location} {('· 🚇' + subway) if subway else ''} {('· ' + category) if category else ''}"):
+            # 위치 정보 수정
+            loc_col1, loc_col2, loc_col3 = st.columns(3)
+            with loc_col1:
+                new_region = st.text_input("지역 (region)", value=r.get("region") or "", key=f"region_{r['id']}")
+            with loc_col2:
+                new_subway = st.text_input("지하철역 (subway)", value=r.get("subway") or "", key=f"subway_{r['id']}")
+            with loc_col3:
+                new_category = st.text_input("카테고리", value=r.get("category") or "", key=f"category_{r['id']}")
+
             memo = st.text_area("메모 (내부용)", value=r.get("memo") or "", key=f"memo_{r['id']}")
             content = st.text_area("본문 (사이트 표시)", value=r.get("content") or "", height=200, key=f"content_{r['id']}")
             status = st.selectbox("상태", ["메모필요", "메모완료", "업로드완료"],
@@ -275,7 +287,7 @@ with tab2:
             col_save, col_gen = st.columns([1, 1])
             with col_save:
                 if st.button("저장", key=f"save_{r['id']}"):
-                    sb.table("spots").update({"memo": memo, "content": content, "status": status}).eq("id", r["id"]).execute()
+                    sb.table("spots").update({"memo": memo, "content": content, "status": status, "region": new_region, "subway": new_subway, "category": new_category}).eq("id", r["id"]).execute()
                     st.success("저장됨!")
                     st.rerun()
             with col_gen:
