@@ -39,22 +39,22 @@ function parseBody(body: string): Segment[] {
 }
 
 const markdownComponents = {
-  h2: ({ children }: { children: React.ReactNode }) => (
+  h2: ({ children }: { children?: React.ReactNode }) => (
     <h2 className="font-display mt-10 mb-4" style={{ fontSize: "1.6rem", color: "var(--ink)", letterSpacing: "-0.02em" }}>{children}</h2>
   ),
-  h3: ({ children }: { children: React.ReactNode }) => (
+  h3: ({ children }: { children?: React.ReactNode }) => (
     <h3 className="font-semibold mt-8 mb-3" style={{ fontSize: "1.1rem", color: "var(--ink)" }}>{children}</h3>
   ),
-  p: ({ children }: { children: React.ReactNode }) => (
+  p: ({ children }: { children?: React.ReactNode }) => (
     <p className="mb-5 leading-relaxed" style={{ color: "var(--ink)" }}>{children}</p>
   ),
-  strong: ({ children }: { children: React.ReactNode }) => (
+  strong: ({ children }: { children?: React.ReactNode }) => (
     <strong style={{ color: "var(--ink)", fontWeight: 700 }}>{children}</strong>
   ),
-  ul: ({ children }: { children: React.ReactNode }) => (
+  ul: ({ children }: { children?: React.ReactNode }) => (
     <ul className="mb-5 pl-5 space-y-1" style={{ color: "var(--muted)" }}>{children}</ul>
   ),
-  li: ({ children }: { children: React.ReactNode }) => (
+  li: ({ children }: { children?: React.ReactNode }) => (
     <li className="leading-relaxed">{children}</li>
   ),
   hr: () => (
