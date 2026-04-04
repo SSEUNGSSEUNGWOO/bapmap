@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function AskButton() {
+export default function AskCard() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [email, setEmail] = useState("");
@@ -27,17 +27,37 @@ export default function AskButton() {
 
   return (
     <>
-      {/* Floating Button */}
       <button
         onClick={() => { setOpen(true); setSent(false); }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full text-white text-sm font-semibold shadow-lg transition-all duration-200 hover:scale-105 hover:opacity-90"
-        style={{ background: "var(--orange)", boxShadow: "0 4px 20px rgba(245,166,35,0.45)" }}
+        className="group block no-underline w-full text-left"
       >
-        <span>✦</span>
-        <span>Ask a local</span>
+        <article
+          className="rounded-2xl overflow-hidden border border-[var(--border)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl h-full flex flex-col justify-between"
+          style={{ background: "var(--ink)", minHeight: "220px", padding: "2rem" }}
+        >
+          <p className="text-[9px] font-bold tracking-[0.2em] uppercase" style={{ color: "var(--orange)" }}>
+            Ask a local
+          </p>
+          <div>
+            <h2
+              className="font-display text-white leading-tight m-0 mb-3"
+              style={{ fontSize: "1.5rem", letterSpacing: "-0.02em" }}
+            >
+              Not sure where to go?
+            </h2>
+            <p className="text-sm m-0" style={{ color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+              Ask Seungwoo — I reply personally to every question.
+            </p>
+          </div>
+          <div
+            className="mt-6 inline-flex items-center gap-2 text-sm font-semibold"
+            style={{ color: "var(--orange)" }}
+          >
+            Ask a question →
+          </div>
+        </article>
       </button>
 
-      {/* Modal */}
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0"

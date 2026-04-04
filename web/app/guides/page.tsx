@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import type { Metadata } from "next";
+import AskCard from "@/components/AskCard";
 
 export const metadata: Metadata = {
   title: "Food Guides | Bapmap",
@@ -105,6 +106,7 @@ export default async function GuidesPage() {
               </article>
             </Link>
           ))}
+          <AskCard />
         </div>
       )}
     </div>

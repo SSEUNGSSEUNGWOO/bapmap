@@ -45,10 +45,10 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center no-underline">
           <Image
-            src="/logo.png"
+            src="/logo.svg"
             alt="Bapmap"
-            width={110}
-            height={34}
+            width={120}
+            height={37}
             style={{
               objectFit: "contain",
               filter: transparent ? "brightness(0) invert(1)" : "none",
