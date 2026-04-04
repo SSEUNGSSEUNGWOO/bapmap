@@ -62,7 +62,7 @@ CATEGORY_MAP = {
 st.set_page_config(page_title="Bapmap Admin", page_icon="🍚", layout="wide")
 st.title("🍚 Bapmap Admin")
 
-tab1, tab2, tab3 = st.tabs(["가게 추가", "전체 목록", "Guides"])
+tab1, tab2, tab3, tab4 = st.tabs(["가게 추가", "전체 목록", "Guides", "Messages"])
 
 with tab1:
     st.subheader("새 가게 추가")
@@ -438,3 +438,32 @@ with tab3:
                 if st.button("🗑️ 삭제", key=f"del_{g['id']}"):
                     sb.table("guides").delete().eq("id", g["id"]).execute()
                     st.rerun()
+
+# ── TAB 4: MESSAGES ────────────────────────────────────────
+with tab4:
+    st.subheader("방문자 메시지")
+
+    status_filter = st.selectbox("상태 필터", ["pending", "approved", "rejected"], key="msg_filter")
+    msgs_res = sb.table("messages").select("*").eq("status", status_filter).order("created_at", desc=True).execute()
+    msgs = msgs_res.data or []
+
+    st.caption(f"{len(msgs)}개")
+
+    for m in msgs:
+        with st.container():
+            st.markdown(f"**\"{m['message']}\"**")
+            reply = st.text_input("답변", value=m.get("reply") or "", key=f"rep_{m['id']}", placeholder="답변 입력 (전광판에 표시됨)")
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col1:
+                if st.button("✅ 승인", key=f"apr_{m['id']}"):
+                    sb.table("messages").update({"status": "approved", "reply": reply}).eq("id", m["id"]).execute()
+                    st.rerun()
+            with col2:
+                if st.button("❌ 거절", key=f"rej_{m['id']}"):
+                    sb.table("messages").update({"status": "rejected"}).eq("id", m["id"]).execute()
+                    st.rerun()
+            with col3:
+                if st.button("💾 답변저장", key=f"sav_{m['id']}"):
+                    sb.table("messages").update({"reply": reply}).eq("id", m["id"]).execute()
+                    st.success("저장됨")
+            st.divider()

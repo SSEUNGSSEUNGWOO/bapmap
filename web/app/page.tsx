@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { Spot } from "@/lib/supabase";
 import SpotCard from "./SpotCard";
 import SearchBar from "./SearchBar";
+import MessageTicker from "@/components/MessageTicker";
 
 export const revalidate = 300;
 
@@ -13,6 +14,13 @@ export default async function Home() {
     .eq("status", "업로드완료")
     .order("created_at", { ascending: false })
     .limit(6);
+
+  const { data: messages } = await supabase
+    .from("messages")
+    .select("id, message, reply")
+    .eq("status", "approved")
+    .order("created_at", { ascending: false })
+    .limit(20);
 
   const { count: spotCount } = await supabase
     .from("spots")
@@ -92,6 +100,9 @@ export default async function Home() {
           style={{ height: "200px", background: "linear-gradient(to bottom, transparent, rgba(8,6,4,0.6))" }}
         />
       </section>
+
+      {/* ── MESSAGE TICKER ── */}
+      <MessageTicker messages={(messages ?? []) as { id: string; message: string; reply: string }[]} />
 
       {/* ── NAV CARDS (overlapping hero) ── */}
       <div className="relative z-10 px-6" style={{ marginTop: "-110px" }}>
