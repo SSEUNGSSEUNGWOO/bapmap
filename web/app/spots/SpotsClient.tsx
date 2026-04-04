@@ -86,7 +86,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
     if (sort === "rating") return [...result].sort((a, b) => (b.rating || 0) - (a.rating || 0));
     if (sort === "name") return [...result].sort((a, b) => (a.english_name || a.name).localeCompare(b.english_name || b.name));
     return result;
-  }, [spots, query, activeRegion, sort]);
+  }, [spots, query, activeRegion, activeCategory, sort]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
