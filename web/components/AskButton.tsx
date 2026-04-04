@@ -5,6 +5,7 @@ import { useState } from "react";
 export default function AskButton() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
+  const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +16,7 @@ export default function AskButton() {
       await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text.trim() }),
+        body: JSON.stringify({ message: text.trim(), email: email.trim() || null }),
       });
       setSent(true);
       setText("");
@@ -83,6 +84,18 @@ export default function AskButton() {
                     minHeight: "100px",
                   }}
                   onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) submit(); }}
+                />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email (optional) — we'll notify you when answered"
+                  className="mt-2 w-full rounded-xl px-4 py-2.5 text-sm outline-none"
+                  style={{
+                    border: "1.5px solid var(--border)",
+                    color: "var(--ink)",
+                    background: "var(--surface)",
+                  }}
                 />
                 <button
                   onClick={submit}

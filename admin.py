@@ -457,6 +457,14 @@ with tab4:
             with col1:
                 if st.button("✅ 승인", key=f"apr_{m['id']}"):
                     sb.table("messages").update({"status": "approved", "reply": reply}).eq("id", m["id"]).execute()
+                    # 이메일 있으면 알림 발송
+                    if m.get("email") and reply:
+                        import requests as req_lib
+                        req_lib.post("https://bapmap.com/api/messages/notify", json={
+                            "email": m["email"],
+                            "message": m["message"],
+                            "reply": reply,
+                        })
                     st.rerun()
             with col2:
                 if st.button("❌ 거절", key=f"rej_{m['id']}"):
