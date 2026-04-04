@@ -67,25 +67,20 @@ export default async function GuidePage({
 
   const g = guide as Guide;
 
-  // spot_slugs로 스팟 fetch
+  // spot_slugs로 스팟 fetch (english_name 그대로 사용)
   let spots: Spot[] = [];
   if (g.spot_slugs && g.spot_slugs.length > 0) {
-    const conditions = g.spot_slugs.map((s) => {
-      const normalized = s.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-      return `english_name.ilike.${normalized.replace(/-/g, " ")}`;
-    });
-
     const { data: spotData } = await supabase
       .from("spots")
       .select("id, name, english_name, city, region, image_url, image_urls, rating, category, price_level, subway, tagline")
       .eq("status", "업로드완료")
-      .in(
-        "english_name",
-        g.spot_slugs.map((s) =>
-          s.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
-        )
-      );
-    spots = (spotData ?? []) as Spot[];
+      .in("english_name", g.spot_slugs);
+
+    // 입력한 순서대로 정렬
+    const orderMap = Object.fromEntries(g.spot_slugs.map((s, i) => [s, i]));
+    spots = ((spotData ?? []) as Spot[]).sort((a, b) =>
+      (orderMap[a.english_name] ?? 99) - (orderMap[b.english_name] ?? 99)
+    );
   }
 
   return (
