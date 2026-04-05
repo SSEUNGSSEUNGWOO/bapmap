@@ -38,10 +38,10 @@ export default async function GuidesPage() {
           className="font-display m-0"
           style={{ fontSize: "clamp(2.5rem,6vw,4rem)", color: "var(--ink)", letterSpacing: "-0.03em", lineHeight: 1.05 }}
         >
-          Eat with purpose.
+          Know before you go.
         </h1>
-        <p className="mt-4 text-base leading-relaxed" style={{ color: "var(--muted)", maxWidth: "480px" }}>
-          Not just lists. Real situations, real picks — for every kind of night in Korea.
+        <p className="mt-4 text-base leading-relaxed" style={{ color: "var(--muted)", maxWidth: "560px" }}>
+          Real places, written by someone who actually eats here.
         </p>
       </div>
 
@@ -61,7 +61,7 @@ export default async function GuidesPage() {
                 style={{ background: "var(--surface)" }}
               >
                 {/* Cover Image */}
-                <div className="relative overflow-hidden" style={{ height: i === 0 ? "320px" : "220px" }}>
+                <div className="relative overflow-hidden" style={{ height: "240px" }}>
                   {guide.cover_image ? (
                     <img
                       src={guide.cover_image}
@@ -88,7 +88,7 @@ export default async function GuidesPage() {
                   <div className="absolute bottom-0 left-0 p-6">
                     <h2
                       className="font-display text-white m-0 leading-tight"
-                      style={{ fontSize: i === 0 ? "2rem" : "1.4rem", letterSpacing: "-0.02em" }}
+                      style={{ fontSize: "1.4rem", letterSpacing: "-0.02em" }}
                     >
                       {guide.title}
                     </h2>
@@ -97,8 +97,8 @@ export default async function GuidesPage() {
 
                 {/* Body */}
                 {guide.subtitle && (
-                  <div className="px-5 py-4">
-                    <p className="text-sm leading-relaxed m-0" style={{ color: "var(--muted)" }}>
+                  <div className="px-5 py-4" style={{ height: "78px", overflow: "hidden" }}>
+                    <p className="text-sm leading-relaxed m-0 line-clamp-2" style={{ color: "var(--muted)" }}>
                       {guide.subtitle}
                     </p>
                   </div>
