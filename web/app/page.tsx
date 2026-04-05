@@ -22,6 +22,13 @@ export default async function Home() {
     .order("created_at", { ascending: false })
     .limit(20);
 
+  const { data: guides } = await supabase
+    .from("guides")
+    .select("id, slug, title, subtitle, cover_image, category_tag")
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
+    .limit(3);
+
   const { count: spotCount } = await supabase
     .from("spots")
     .select("*", { count: "exact", head: true })
@@ -56,7 +63,7 @@ export default async function Home() {
         {/* Center content */}
         <div className="relative flex-1 flex flex-col items-center justify-center px-4 text-center" style={{ paddingBottom: "80px" }}>
           {/* Eyebrow */}
-          <div className="animate-fadeUp delay-1 flex items-center gap-3 mb-8">
+          <div className="animate-fadeUp delay-1 flex items-center gap-3 mb-0">
             <div style={{ width: "32px", height: "1px", background: "rgba(245,166,35,0.7)" }} />
             <p className="text-white/60 text-[10px] font-semibold tracking-[0.35em] uppercase">
               Korean Food · Mapped for You
@@ -79,7 +86,7 @@ export default async function Home() {
 
           {/* Subtitle */}
           <p
-            className="animate-fadeUp delay-3 text-white/65 font-light mt-7 max-w-sm leading-relaxed"
+            className="animate-fadeUp delay-4 text-white/65 font-light mt-14 max-w-sm leading-relaxed"
             style={{ fontSize: "clamp(0.95rem,2vw,1.2rem)", letterSpacing: "0.01em" }}
           >
             Follow the locals. Eat like one.
@@ -100,9 +107,6 @@ export default async function Home() {
           style={{ height: "200px", background: "linear-gradient(to bottom, transparent, rgba(8,6,4,0.6))" }}
         />
       </section>
-
-      {/* ── MESSAGE TICKER ── */}
-      <MessageTicker messages={(messages ?? []) as { id: string; message: string; reply: string }[]} />
 
       {/* ── NAV CARDS (overlapping hero) ── */}
       <div className="relative z-10 px-6" style={{ marginTop: "-110px" }}>
@@ -170,6 +174,9 @@ export default async function Home() {
           ))}
         </div>
       </div>
+
+      {/* ── MESSAGE TICKER ── */}
+      <MessageTicker messages={(messages ?? []) as { id: string; message: string; reply: string }[]} />
 
       {/* ── STATS ── */}
       <section className="bg-white" style={{ paddingTop: "6rem", paddingBottom: "5rem" }}>
@@ -271,182 +278,89 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── WHAT ARE YOU IN THE MOOD FOR ── */}
-      <section className="max-w-4xl mx-auto px-6" style={{ paddingTop: "5rem", paddingBottom: "5rem" }}>
-        <div className="mb-10">
-          <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3" style={{ color: "var(--orange)" }}>Browse by food type</p>
-          <h2 className="font-display m-0" style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}>
-            Eat by mood
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { label: "Korean BBQ", slug: "korean-bbq", img: "https://images.unsplash.com/photo-1708388066811-906f2f678a84?w=600&q=80" },
-            { label: "Noodles", slug: "noodles", img: "https://images.unsplash.com/photo-1743419612786-19d116bb8c40?w=600&q=80" },
-            { label: "Korean Soup", slug: "korean-soup", img: "https://images.unsplash.com/photo-1572171579626-e79450374587?w=600&q=80" },
-            { label: "Seafood", slug: "seafood", img: "https://images.unsplash.com/photo-1758384075930-6e3835d22b1d?w=600&q=80" },
-            { label: "Gopchang", slug: "gopchang", img: "https://images.unsplash.com/photo-1567932783552-e305bbf70b63?w=600&q=80" },
-            { label: "Tteokbokki", slug: "tteokbokki", img: "https://images.unsplash.com/photo-1635363638580-c2809d049eee?w=600&q=80" },
-            { label: "Bakery & Cafe", slug: "bakery-cafe", img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80" },
-            { label: "Bar", slug: "bar", img: "https://images.unsplash.com/photo-1759663802834-5df7ae5b08de?w=600&q=80" },
-          ].map(({ label, slug, img }) => (
-            <Link
-              key={label}
-              href={`/cities/seoul/${slug}`}
-              className="group block no-underline rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-              style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.1)" }}
-            >
-              <div className="relative" style={{ height: "160px" }}>
-                <img src={img} alt={label} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 60%)" }} />
-                <div className="absolute bottom-0 left-0 p-4">
-                  <span className="font-display text-white font-bold" style={{ fontSize: "1.1rem", letterSpacing: "-0.01em" }}>{label}</span>
-                </div>
-              </div>
+      {/* ── GUIDES ── */}
+      {guides && guides.length > 0 && (
+        <section className="max-w-4xl mx-auto px-6" style={{ paddingTop: "5rem", paddingBottom: "5rem" }}>
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3" style={{ color: "var(--orange)" }}>
+                Bapmap Guides
+              </p>
+              <h2 className="font-display m-0" style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}>
+                Know before you go.
+              </h2>
+            </div>
+            <Link href="/guides" className="text-sm font-bold no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--orange)" }}>
+              All guides →
             </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* ── EXPLORE BY CITY ── */}
-      <section className="max-w-4xl mx-auto px-6" style={{ paddingTop: "5rem", paddingBottom: "5rem" }}>
-        <div className="mb-10">
-          <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3" style={{ color: "var(--orange)" }}>
-            Explore by city
-          </p>
-          <h2
-            className="font-display m-0"
-            style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}
-          >
-            Where to?
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Seoul - active */}
-          <Link
-            href="/spots"
-            className="group block no-underline relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
-            style={{ height: "280px", boxShadow: "0 4px 24px rgba(0,0,0,0.1)" }}
-          >
-            <img
-              src="/city-seoul.jpg"
-              alt="Seoul"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            <div
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.1) 60%)" }}
-            />
-            <div className="absolute bottom-0 left-0 p-7">
-              <div
-                className="text-white font-display leading-none mb-2"
-                style={{ fontSize: "2.5rem", letterSpacing: "-0.03em" }}
-              >
-                Seoul
-              </div>
-              <div
-                className="text-xs font-semibold flex items-center gap-1.5"
-                style={{ color: "var(--orange)" }}
-              >
-                View spots →
-              </div>
-            </div>
-          </Link>
-
-          {/* Right: Busan + Jeju stacked */}
-          <div className="grid grid-rows-2 gap-4">
-            {[
-              { name: "Busan", img: "/city-busan.jpg" },
-              { name: "Jeju", img: "/city-jeju.jpg" },
-            ].map((city) => (
-              <div
-                key={city.name}
-                className="relative rounded-2xl overflow-hidden"
-                style={{ height: "130px" }}
-              >
-                <img
-                  src={city.img}
-                  alt={city.name}
-                  className="absolute inset-0 w-full h-full object-cover brightness-50"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{ background: "linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 100%)" }}
-                />
-                <div className="absolute inset-0 flex items-center justify-between px-5">
-                  <div className="text-white font-display text-2xl font-bold">{city.name}</div>
-                  <div
-                    className="text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full"
-                    style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(6px)", color: "rgba(255,255,255,0.75)" }}
-                  >
-                    Coming Soon
+          </div>
+          <div className="flex flex-col gap-5">
+            {/* 첫 번째 카드: 풀 와이드 히어로 */}
+            {guides[0] && (
+              <Link href={`/guides/${guides[0].slug}`} className="group block no-underline">
+                <article className="rounded-2xl overflow-hidden border border-[var(--border)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl" style={{ background: "var(--surface)" }}>
+                  <div className="relative overflow-hidden" style={{ height: "380px" }}>
+                    {guides[0].cover_image ? (
+                      <img src={guides[0].cover_image} alt={guides[0].title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    ) : (
+                      <div className="w-full h-full" style={{ background: "var(--ink)" }} />
+                    )}
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 55%)" }} />
+                    {guides[0].category_tag && (
+                      <div className="absolute top-4 left-4">
+                        <span className="text-[9px] font-bold tracking-[0.2em] uppercase px-2.5 py-1 rounded-full" style={{ background: "var(--orange)", color: "#fff" }}>
+                          {guides[0].category_tag}
+                        </span>
+                      </div>
+                    )}
+                    <div className="absolute bottom-0 left-0 p-7">
+                      <h3 className="font-display text-white m-0 leading-tight" style={{ fontSize: "clamp(1.6rem,3vw,2.2rem)", letterSpacing: "-0.02em" }}>
+                        {guides[0].title}
+                      </h3>
+                      {guides[0].subtitle && (
+                        <p className="text-sm text-white/70 mt-2 m-0 line-clamp-2" style={{ maxWidth: "560px" }}>{guides[0].subtitle}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Gangwon - full width */}
-        <div
-          className="mt-4 relative rounded-2xl overflow-hidden"
-          style={{ height: "120px" }}
-        >
-          <img
-            src="/city-gangwon.jpg"
-            alt="Gangwon"
-            className="absolute inset-0 w-full h-full object-cover brightness-50"
-          />
-          <div
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 100%)" }}
-          />
-          <div className="absolute inset-0 flex items-center justify-between px-7">
-            <div className="text-white font-display text-2xl font-bold">Gangwon</div>
-            <div
-              className="text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full"
-              style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(6px)", color: "rgba(255,255,255,0.75)" }}
-            >
-              Coming Soon
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── LATEST SPOTS ── */}
-      {recent && recent.length > 0 && (
-        <section
-          className="border-t border-[var(--border)]"
-          style={{ background: "var(--surface)", paddingTop: "5rem", paddingBottom: "6rem" }}
-        >
-          <div className="max-w-4xl mx-auto px-6">
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3" style={{ color: "var(--orange)" }}>
-                  Fresh picks
-                </p>
-                <h2
-                  className="font-display m-0"
-                  style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}
-                >
-                  Latest Bapmap Picks
-                </h2>
-              </div>
-              <Link
-                href="/spots"
-                className="text-sm font-bold no-underline hover:opacity-60 transition-opacity"
-                style={{ color: "var(--orange)" }}
-              >
-                View all →
+                </article>
               </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {recent.map((spot) => (
-                <SpotCard key={spot.id} spot={spot as Spot} />
-              ))}
-            </div>
+            )}
+            {/* 나머지 카드: 2열 */}
+            {guides.length > 1 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {guides.slice(1).map((guide) => (
+                  <Link key={guide.id} href={`/guides/${guide.slug}`} className="group block no-underline">
+                    <article className="rounded-2xl overflow-hidden border border-[var(--border)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl" style={{ background: "var(--surface)" }}>
+                      <div className="relative overflow-hidden" style={{ height: "220px" }}>
+                        {guide.cover_image ? (
+                          <img src={guide.cover_image} alt={guide.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        ) : (
+                          <div className="w-full h-full" style={{ background: "var(--ink)" }} />
+                        )}
+                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%)" }} />
+                        {guide.category_tag && (
+                          <div className="absolute top-4 left-4">
+                            <span className="text-[9px] font-bold tracking-[0.2em] uppercase px-2.5 py-1 rounded-full" style={{ background: "var(--orange)", color: "#fff" }}>
+                              {guide.category_tag}
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute bottom-0 left-0 p-5">
+                          <h3 className="font-display text-white m-0 leading-tight" style={{ fontSize: "1.2rem", letterSpacing: "-0.02em" }}>
+                            {guide.title}
+                          </h3>
+                        </div>
+                      </div>
+                      {guide.subtitle && (
+                        <div className="px-4 py-3">
+                          <p className="text-xs leading-relaxed m-0 line-clamp-2" style={{ color: "var(--muted)" }}>{guide.subtitle}</p>
+                        </div>
+                      )}
+                    </article>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
