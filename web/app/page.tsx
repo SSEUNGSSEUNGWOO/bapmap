@@ -365,6 +365,30 @@ export default async function Home() {
         </section>
       )}
 
+      {/* ── LATEST SPOTS ── */}
+      {recent && recent.length > 0 && (
+        <section className="max-w-4xl mx-auto px-6" style={{ paddingTop: "5rem", paddingBottom: "5rem" }}>
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3" style={{ color: "var(--orange)" }}>
+                Latest Bapmap Picks
+              </p>
+              <h2 className="font-display m-0" style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}>
+                Just added.
+              </h2>
+            </div>
+            <Link href="/spots" className="text-sm font-bold no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--orange)" }}>
+              All spots →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {(recent as Spot[]).map((spot) => (
+              <SpotCard key={spot.id} spot={spot} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ── BOTTOM CTA ── */}
       <section className="relative text-center overflow-hidden" style={{ paddingTop: "7rem", paddingBottom: "7rem" }}>
         <div
