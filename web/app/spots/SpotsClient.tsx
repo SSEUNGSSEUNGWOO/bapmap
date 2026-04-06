@@ -155,6 +155,11 @@ export default function SpotsClient({ spots, hideHeader }: { spots: Spot[]; hide
     return ["All", ...Array.from(set).sort()];
   }, [spots]);
 
+  const availableCities = useMemo(() => {
+    const set = new Set(spots.map((s) => s.city?.toLowerCase()).filter(Boolean));
+    return set;
+  }, [spots]);
+
   const categories = useMemo(() => {
     const set = new Set(spots.map((s) => s.category).filter(Boolean));
     return ["All", ...Array.from(set).sort()];
@@ -198,7 +203,7 @@ export default function SpotsClient({ spots, hideHeader }: { spots: Spot[]; hide
 
           {/* 도시 탭 */}
           <div className="flex gap-3 overflow-x-auto pb-2 mb-8 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
-            {CITY_TABS.map(({ label, labelJa, href, image }) => (
+            {CITY_TABS.filter(({ label }) => label === "All" || availableCities.has(label.toLowerCase())).map(({ label, labelJa, href, image }) => (
               <Link key={label} href={href} className="no-underline flex-shrink-0">
                 <div className="relative rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
                   style={{ width: 110, height: 70 }}>
