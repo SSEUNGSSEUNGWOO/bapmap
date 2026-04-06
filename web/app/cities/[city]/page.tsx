@@ -99,7 +99,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
       </div>
 
       <Suspense>
-        <SpotsClient spots={spots as Spot[]} />
+        <SpotsClient spots={spots as Spot[]} hideHeader={true} />
       </Suspense>
     </div>
   );
