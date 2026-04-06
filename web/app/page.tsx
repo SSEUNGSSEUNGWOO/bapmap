@@ -374,7 +374,7 @@ export default async function Home() {
                 Latest Bapmap Picks
               </p>
               <h2 className="font-display m-0" style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}>
-                Just added.
+                Recent Posts.
               </h2>
             </div>
             <Link href="/spots" className="text-sm font-bold no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--orange)" }}>
