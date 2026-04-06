@@ -15,7 +15,7 @@ async function rewriteQuery(raw: string) {
   const res = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 80,
-    system: `Extract from the query. Return JSON only with keys: "query" (English, max 15 words), "region" (Korean area or null), "category" (food type or null), "intent" ("food"|"culture"|"both").`,
+    system: `Extract from the query. Return JSON only with keys: "query" (English, max 15 words), "region" (Korean area or null), "category" (food type or null), "intent" ("food"|"culture"|"both"). Use "culture" ONLY if the query is purely about K-pop/K-drama with zero food interest. Default to "both" for any K-culture query that could involve food, restaurants, or local spots.`,
     messages: [{ role: "user", content: raw }],
   });
   try {
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
         const msgStream = anthropic.messages.stream({
           model: "claude-haiku-4-5-20251001",
           max_tokens: 350,
-          system: `You are Bapmap's guide for English-speaking tourists in Korea — covering food, K-pop, K-drama, and local culture.
+          system: `You are Bapmap's guide for English-speaking tourists in Korea — covering food, K-pop, K-drama, and local culture. Always respond in English regardless of the query language.
 
 You have two types of context:
 - [SPOT]: real restaurants/cafes personally visited and verified by Bapmap. Always recommend these with markdown links: [Name](/spots/slug)
