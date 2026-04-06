@@ -51,14 +51,23 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
   const meta = CITY_DISPLAY[city];
   const label = meta?.label || city.charAt(0).toUpperCase() + city.slice(1);
 
-  const { data: spots } = await supabase
-    .from("spots")
-    .select("id, name, english_name, city, region, image_url, image_urls, rating, category, price_level, subway, tagline")
-    .eq("status", "업로드완료")
-    .ilike("city", city)
-    .order("created_at", { ascending: false });
+  const [{ data: spots }, { data: cityRows }] = await Promise.all([
+    supabase
+      .from("spots")
+      .select("id, name, english_name, city, region, image_url, image_urls, rating, category, price_level, subway, tagline")
+      .eq("status", "업로드완료")
+      .ilike("city", city)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("spots")
+      .select("city")
+      .eq("status", "업로드완료"),
+  ]);
 
   if (!spots || spots.length === 0) notFound();
+
+  const availableCities = new Set((cityRows ?? []).map((r) => r.city?.toLowerCase()).filter(Boolean));
+  const visibleTabs = CITY_TABS.filter(({ label }) => label === "All" || availableCities.has(label.toLowerCase()));
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
@@ -74,7 +83,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
 
       {/* 도시 탭 */}
       <div className="flex gap-3 overflow-x-auto pb-2 mb-8 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
-        {CITY_TABS.map(({ label: tabLabel, href, image }) => {
+        {visibleTabs.map(({ label: tabLabel, href, image }) => {
           const isActive = href === `/cities/${city}`;
           return (
             <Link key={tabLabel} href={href} className="no-underline flex-shrink-0">
