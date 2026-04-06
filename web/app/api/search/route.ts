@@ -86,7 +86,8 @@ export async function POST(req: NextRequest) {
         const published = spots.filter((s: Record<string, unknown>) => s.status === "업로드완료");
         const comingSoon = spots.filter((s: Record<string, unknown>) => s.status !== "업로드완료").slice(0, 2);
         const filteredSpots = [...published, ...comingSoon].slice(0, 5);
-        send({ type: "spots", data: filteredSpots });
+        const spotsForClient = filteredSpots.map(({ content: _c, memo: _m, ...s }: Record<string, unknown>) => s);
+        send({ type: "spots", data: spotsForClient });
 
         // 3. Build context
         const spotsContext = [
