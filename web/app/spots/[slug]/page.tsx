@@ -1,9 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Link from "next/link";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import SpotClient from "./SpotClient";
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 6371;
@@ -27,7 +25,7 @@ async function getSpot(slug: string) {
 async function getNearbySpots(spot: { id: string; lat: number; lng: number }) {
   const { data: spots } = await supabase
     .from("spots")
-    .select("id, name, english_name, city, region, image_url, rating, category, lat, lng")
+    .select("id, name, english_name, city, region, image_url, rating, lat, lng")
     .eq("status", "업로드완료")
     .neq("id", spot.id);
 
@@ -107,236 +105,12 @@ export default async function SpotPage({ params }: { params: Promise<{ slug: str
   };
 
   return (
-    <div>
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* ── 이미지 갤러리 ── */}
-      {images.length > 0 && (
-        <div className={`grid gap-2 ${images.length >= 3 ? "grid-cols-3" : images.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
-          {images.slice(0, 3).map((url, i) => (
-            <div key={i} className={`overflow-hidden bg-gray-100 ${images.length === 1 ? "col-span-1" : ""}`} style={{ height: "clamp(200px, 40vw, 480px)" }}>
-              <img
-                src={url}
-                alt={`${spot.english_name || spot.name} ${i + 1}`}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── 본문 ── */}
-      <div className="max-w-2xl mx-auto px-6 py-12">
-
-        {/* 브레드크럼 */}
-        <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--muted)" }}>
-          <Link href="/spots" className="no-underline hover:opacity-70" style={{ color: "var(--muted)" }}>Spots</Link>
-          <span>›</span>
-          <span style={{ color: "var(--orange)" }}>{spot.region || spot.city}</span>
-        </div>
-
-        {/* 헤더 */}
-        <div className="mb-8">
-          <p className="text-xs font-bold tracking-[0.2em] uppercase mb-2" style={{ color: "var(--orange)" }}>
-            {spot.region || spot.city}
-          </p>
-          <h1 className="font-display mb-4" style={{ fontSize: "clamp(2rem,5vw,3rem)", color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
-            {spot.english_name || spot.name}
-          </h1>
-
-          {/* 배지들 */}
-          <div className="flex flex-wrap gap-2">
-            <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
-              ★ {spot.rating} · {spot.rating_count?.toLocaleString()} reviews
-            </span>
-            {spot.price_level && (
-              <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
-                {spot.price_level}
-              </span>
-            )}
-            {spot.subway && (
-              <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
-                🚇 {spot.subway}
-              </span>
-            )}
-            {spot.category && (
-              <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
-                {spot.category}
-              </span>
-            )}
-            {spot.spice_level != null && spot.spice_level > 0 && (
-              <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
-                {"🌶️".repeat(spot.spice_level)}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="border-t border-[var(--border)] mb-8" />
-
-        {/* What to Order */}
-        {Array.isArray(spot.what_to_order) && spot.what_to_order.length > 0 && (
-          <div className="mb-8 p-5 rounded-2xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: "var(--orange)" }}>What to Order</p>
-            <ul className="space-y-2">
-              {spot.what_to_order.map((item: string, i: number) => (
-                <li key={i} className="flex items-start gap-2 text-sm" style={{ color: "var(--ink)" }}>
-                  <span style={{ color: "var(--orange)", flexShrink: 0 }}>✦</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Good For */}
-        {Array.isArray(spot.good_for) && spot.good_for.length > 0 && (
-          <div className="mb-8">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: "var(--orange)" }}>Good For</p>
-            <div className="flex flex-wrap gap-2">
-              {spot.good_for.map((tag: string, i: number) => (
-                <span key={i} className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "var(--surface)", color: "var(--ink)", border: "1px solid var(--border)" }}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 본문 글 */}
-        {spot.content ? (
-          <div className="mb-10 prose-content">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                h1: ({ children }) => (
-                  <h1 className="font-display mb-4" style={{ fontSize: "1.5rem", color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2 }}>{children}</h1>
-                ),
-                h2: ({ children }) => (
-                  <h2 className="font-bold mt-10 mb-4 pl-4" style={{ fontSize: "1.05rem", color: "var(--ink)", borderLeft: "3px solid var(--orange)", letterSpacing: "-0.01em" }}>{children}</h2>
-                ),
-                h3: ({ children }) => (
-                  <h3 className="font-bold mt-6 mb-2" style={{ fontSize: "0.95rem", color: "var(--ink)" }}>{children}</h3>
-                ),
-                p: ({ children }) => (
-                  <p className="mb-6" style={{ fontSize: "1rem", lineHeight: "1.9", color: "var(--muted)" }}>{children}</p>
-                ),
-                strong: ({ children }) => (
-                  <strong style={{ color: "var(--ink)", fontWeight: 600 }}>{children}</strong>
-                ),
-                ul: ({ children }) => (
-                  <ul className="mb-6 space-y-1 pl-4" style={{ color: "var(--muted)", listStyleType: "disc" }}>{children}</ul>
-                ),
-                ol: ({ children }) => (
-                  <ol className="mb-6 space-y-1 pl-4" style={{ color: "var(--muted)", listStyleType: "decimal" }}>{children}</ol>
-                ),
-                li: ({ children }) => (
-                  <li style={{ fontSize: "1rem", lineHeight: "1.9" }}>{children}</li>
-                ),
-                hr: () => (
-                  <div className="border-t border-[var(--border)] my-8" />
-                ),
-                table: ({ children }) => (
-                  <div className="overflow-x-auto mb-6 rounded-xl" style={{ border: "1px solid var(--border)" }}>
-                    <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>{children}</table>
-                  </div>
-                ),
-                th: ({ children }) => (
-                  <th className="py-2 px-4 text-left text-xs font-bold tracking-wide uppercase" style={{ background: "var(--surface)", color: "var(--ink)", borderBottom: "1px solid var(--border)" }}>{children}</th>
-                ),
-                td: ({ children }) => (
-                  <td className="py-2 px-4" style={{ borderBottom: "1px solid var(--border)", color: "var(--muted)" }}>{children}</td>
-                ),
-                a: ({ href, children }) => (
-                  <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--orange)", textDecoration: "underline" }}>{children}</a>
-                ),
-              }}
-            >
-              {spot.content}
-            </ReactMarkdown>
-          </div>
-        ) : (
-          <p className="mb-10" style={{ color: "var(--muted)" }}>Content coming soon.</p>
-        )}
-
-        <div className="border-t border-[var(--border)] mb-8" />
-
-        {/* 영업시간 */}
-        {spot.hours && (
-          <div className="mb-8">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: "var(--orange)" }}>Hours</p>
-            <div className="text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
-              {spot.hours.split("\n").map((line: string, i: number) => (
-                <div key={i}>{line}</div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 구글 리뷰 */}
-        {Array.isArray(spot.google_reviews) && spot.google_reviews.length > 0 && (
-          <div className="mb-8">
-            <div className="border-t border-[var(--border)] mb-8" />
-            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-4" style={{ color: "var(--orange)" }}>What People Are Saying</p>
-            <div className="space-y-4">
-              {spot.google_reviews.slice(0, 3).map((review: string, i: number) => (
-                <div key={i} className="p-4 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--muted)" }}>"{review}"</p>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs mt-3" style={{ color: "var(--border)" }}>— Google Reviews</p>
-          </div>
-        )}
-
-        {/* 구글맵 버튼 */}
-        {spot.google_maps_url && (
-          <a
-            href={spot.google_maps_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 font-bold text-sm px-6 py-3 rounded-full text-white no-underline transition-opacity hover:opacity-80"
-            style={{ background: "var(--orange)" }}
-          >
-            Open in Google Maps →
-          </a>
-        )}
-      </div>
-
-      {/* Nearby Spots */}
-      {nearby.length > 0 && (
-        <div className="max-w-2xl mx-auto px-6 pb-16">
-          <div className="border-t border-[var(--border)] mb-8" />
-          <p className="text-xs font-bold tracking-[0.2em] uppercase mb-6" style={{ color: "var(--orange)" }}>Nearby Spots</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {nearby.map((s: any) => {
-              const nearbySlug = (s.english_name || s.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-              return (
-                <Link key={s.id} href={`/spots/${nearbySlug}`} className="group block no-underline">
-                  <div className="rounded-xl overflow-hidden border border-[var(--border)] group-hover:shadow-lg group-hover:-translate-y-0.5 transition-all duration-200">
-                    {s.image_url ? (
-                      <img src={s.image_url} alt={s.english_name || s.name} className="w-full object-cover" style={{ height: "100px" }} />
-                    ) : (
-                      <div className="flex items-center justify-center" style={{ height: "100px", background: "var(--surface)" }}>
-                        <span style={{ fontSize: "1.8rem" }}>🍜</span>
-                      </div>
-                    )}
-                    <div className="p-3">
-                      <div className="text-[9px] font-bold tracking-widest uppercase mb-0.5" style={{ color: "var(--orange)" }}>
-                        {s.region || s.city}
-                      </div>
-                      <div className="font-semibold text-xs mb-1" style={{ color: "var(--ink)" }}>{s.english_name || s.name}</div>
-                      <div className="text-[11px]" style={{ color: "var(--muted)" }}>★ {s.rating} · {s.dist < 1 ? `${Math.round(s.dist * 1000)}m` : `${s.dist.toFixed(1)}km`}</div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+      <SpotClient spot={spot} nearby={nearby} images={images} />
+    </>
   );
 }

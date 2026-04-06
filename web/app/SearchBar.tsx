@@ -2,21 +2,25 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLang } from "@/lib/LanguageContext";
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const { lang } = useLang();
 
   const submit = (q: string) => {
     if (!q.trim()) return;
     router.push(`/search?q=${encodeURIComponent(q.trim())}`);
   };
 
-  const suggestions = [
-    "I'm a K-pop fan in Seoul",
-    "ramen in Seongsu",
-    "Korean BBQ Hongdae",
-  ];
+  const suggestions = lang === "ja"
+    ? ["K-POPファンにおすすめ", "聖水でラーメン", "弘大で韓国焼肉"]
+    : ["I'm a K-pop fan in Seoul", "ramen in Seongsu", "Korean BBQ Hongdae"];
+
+  const placeholder = lang === "ja"
+    ? "例: 弘大近くの辛いラーメン..."
+    : "e.g. spicy ramen near Hongdae...";
 
   return (
     <div className="w-full max-w-xl mx-auto">
@@ -25,7 +29,7 @@ export default function SearchBar() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="e.g. spicy ramen near Hongdae..."
+          placeholder={placeholder}
           autoComplete="off"
           suppressHydrationWarning
           className="w-full rounded-full px-6 py-4 pr-14 text-sm outline-none placeholder-white/50"

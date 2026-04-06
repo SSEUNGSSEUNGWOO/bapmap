@@ -3,6 +3,25 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import type { Spot } from "@/lib/supabase";
+import { useLang } from "@/lib/LanguageContext";
+
+const REGION_JA: Record<string, string> = {
+  "Dongdaemun District": "東大門区", "Dongdaemun-gu": "東大門区",
+  "Dongjak District": "銅雀区", "Dongjak-gu": "銅雀区",
+  "Gangnam District": "江南区", "Gangnam-gu": "江南区",
+  "Guro District": "九老区", "Guro-gu": "九老区",
+  "Gwanak District": "冠岳区", "Gwanak-gu": "冠岳区",
+  "Gwangjin District": "広津区", "Gwangjin-gu": "広津区",
+  "Jongno District": "鍾路区", "Jongno-gu": "鍾路区",
+  "Jung District": "中区", "Jung-gu": "中区",
+  "Mapo District": "麻浦区", "Mapo-gu": "麻浦区",
+  "Seocho District": "瑞草区", "Seocho-gu": "瑞草区",
+  "Seodaemun District": "西大門区", "Seodaemun-gu": "西大門区",
+  "Seongdong District": "城東区", "Seongdong-gu": "城東区",
+  "Songpa District": "松坡区", "Songpa-gu": "松坡区",
+  "Yeongdeungpo": "永登浦", "Yeongdeungpo District": "永登浦区", "Yeongdeungpo-gu": "永登浦区",
+  "Yongsan District": "龍山区", "Yongsan-gu": "龍山区",
+};
 
 function SpotCardImage({ images, name }: { images: string[]; name: string }) {
   const [idx, setIdx] = useState(0);
@@ -46,6 +65,8 @@ function SpotCardImage({ images, name }: { images: string[]; name: string }) {
 }
 
 export default function SpotCard({ spot }: { spot: Spot }) {
+  const { lang } = useLang();
+  const isJa = lang === "ja";
   const slug = (spot.english_name || spot.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
   const images = Array.isArray(spot.image_urls) && spot.image_urls.length > 0
     ? spot.image_urls.slice(0, 3)
@@ -63,7 +84,7 @@ export default function SpotCard({ spot }: { spot: Spot }) {
         )}
         <div className="p-4 flex flex-col flex-1">
           <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
-            {spot.region || spot.city}
+            {isJa ? (REGION_JA[spot.region || spot.city || ""] || spot.region || spot.city) : (spot.region || spot.city)}
           </div>
           <div className="font-semibold text-sm mb-1.5 line-clamp-2" style={{ color: "var(--ink)" }}>{spot.english_name || spot.name}</div>
           {spot.tagline && (

@@ -1,9 +1,95 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Spot } from "@/lib/supabase";
+import { useLang } from "@/lib/LanguageContext";
+
+const T = {
+  en: {
+    eyebrow: "The list",
+    title: "Where Koreans Eat",
+    subtitle: "No tourist traps. No sponsored picks. Just the real thing.",
+    allCities: "All cities",
+    searchPlaceholder: "Search spots, neighborhoods...",
+    newest: "Newest",
+    topRated: "Top Rated",
+    az: "A–Z",
+    allCategories: "All Categories",
+    allAreas: "All Areas",
+    spot: "spot",
+    spots: "spots",
+    inArea: "in",
+    forQuery: "for",
+    noSpotsTitle: "No spots found",
+    noSpotsDesc: "Try a different search or filter",
+  },
+  ja: {
+    eyebrow: "リスト",
+    title: "韓国人が食べに行く店",
+    subtitle: "観光客向けの店はなし。広告もなし。本物だけ。",
+    allCities: "全都市",
+    searchPlaceholder: "スポット・エリアを検索...",
+    newest: "新着順",
+    topRated: "評価順",
+    az: "A–Z",
+    allCategories: "全カテゴリー",
+    allAreas: "全エリア",
+    spot: "件",
+    spots: "件",
+    inArea: "",
+    forQuery: "「",
+    noSpotsTitle: "スポットが見つかりません",
+    noSpotsDesc: "検索条件を変えてみてください",
+  },
+};
+
+const CATEGORY_JA: Record<string, string> = {
+  "Asian": "アジア料理",
+  "Bakery & Cafe": "ベーカリー＆カフェ",
+  "Bar": "バー",
+  "Chinese": "中華料理",
+  "Gopchang": "コプチャン",
+  "Italian": "イタリア料理",
+  "Japanese": "日本料理",
+  "Korean": "韓国料理",
+  "Korean BBQ": "韓国式焼肉",
+  "Korean Soup": "韓国スープ",
+  "Noodles": "麺料理",
+  "Pizza": "ピザ",
+  "Seafood": "海鮮",
+  "Street Food": "屋台・ストリートフード",
+  "Tteokbokki": "トッポッキ",
+  "Western": "洋食",
+};
+
+const REGION_JA: Record<string, string> = {
+  "Dongdaemun District": "東大門区", "Dongdaemun-gu": "東大門区",
+  "Dongjak District": "銅雀区", "Dongjak-gu": "銅雀区",
+  "Gangnam District": "江南区", "Gangnam-gu": "江南区",
+  "Guro District": "九老区", "Guro-gu": "九老区",
+  "Gwanak District": "冠岳区", "Gwanak-gu": "冠岳区",
+  "Gwangjin District": "広津区", "Gwangjin-gu": "広津区",
+  "Jongno District": "鍾路区", "Jongno-gu": "鍾路区",
+  "Jung District": "中区", "Jung-gu": "中区",
+  "Mapo District": "麻浦区", "Mapo-gu": "麻浦区",
+  "Seocho District": "瑞草区", "Seocho-gu": "瑞草区",
+  "Seodaemun District": "西大門区", "Seodaemun-gu": "西大門区",
+  "Seongdong District": "城東区", "Seongdong-gu": "城東区",
+  "Songpa District": "松坡区", "Songpa-gu": "松坡区",
+  "Yeongdeungpo": "永登浦", "Yeongdeungpo District": "永登浦区", "Yeongdeungpo-gu": "永登浦区",
+  "Yongsan District": "龍山区", "Yongsan-gu": "龍山区",
+};
+
+const CITY_TABS = [
+  { label: "All", labelJa: "すべて", href: "/spots", image: null },
+  { label: "Seoul", labelJa: "ソウル", href: "/cities/seoul", image: "https://images.unsplash.com/photo-1748273945548-6ef8d73b9325?w=800&q=80" },
+  { label: "Gangwon", labelJa: "江原道", href: "/cities/gangwon", image: "https://images.unsplash.com/photo-1721999591032-a8b3845c9564?w=800&q=80" },
+  { label: "Gyeonggi", labelJa: "京畿道", href: "/cities/gyeonggi", image: "https://images.unsplash.com/photo-1619341663312-0b8cde878b2f?w=800&q=80" },
+  { label: "Jeju", labelJa: "済州島", href: "/cities/jeju", image: "https://images.unsplash.com/photo-1613186448181-7ba25cc0ff2a?w=800&q=80" },
+  { label: "Incheon", labelJa: "仁川", href: "/cities/incheon", image: "https://images.unsplash.com/photo-1592205838971-5d7c8b9de850?w=800&q=80" },
+];
 
 function SpotCardImage({ images, name }: { images: string[]; name: string }) {
   const [idx, setIdx] = useState(0);
@@ -54,6 +140,9 @@ type SortOption = "newest" | "rating" | "name";
 const PAGE_SIZE = 9;
 
 export default function SpotsClient({ spots }: { spots: Spot[] }) {
+  const { lang } = useLang();
+  const t = T[lang];
+  const isJa = lang === "ja";
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [activeRegion, setActiveRegion] = useState("All");
@@ -97,7 +186,38 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
   };
 
   return (
-    <div>
+    <div className="max-w-4xl mx-auto px-6 py-12">
+      {/* 헤더 */}
+      <p className="text-xs font-bold tracking-[0.2em] uppercase mb-2" style={{ color: "var(--orange)" }}>{t.eyebrow}</p>
+      <h1 className="font-display mb-3" style={{ fontSize: "clamp(2.5rem,6vw,4rem)", color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+        {t.title}
+      </h1>
+      <p className="mb-6" style={{ color: "var(--muted)" }}>{t.subtitle}</p>
+
+      {/* 도시 탭 */}
+      <div className="flex gap-3 overflow-x-auto pb-2 mb-8 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
+        {CITY_TABS.map(({ label, labelJa, href, image }) => (
+          <Link key={label} href={href} className="no-underline flex-shrink-0">
+            <div className="relative rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+              style={{ width: 110, height: 70 }}>
+              {image ? (
+                <img src={image} alt={label} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full" style={{ background: "var(--orange)" }} />
+              )}
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 60%, transparent)" }} />
+              <div className="absolute bottom-0 left-0 right-0 px-3 pb-2">
+                <span className="text-xs font-bold text-white">{isJa ? labelJa : label}</span>
+                {label === "All" && <span className="block text-[10px] text-white/70">{t.allCities}</span>}
+              </div>
+              {label === "All" && (
+                <div className="absolute inset-0 ring-2 ring-inset ring-white/40 rounded-2xl" />
+              )}
+            </div>
+          </Link>
+        ))}
+      </div>
+
       {/* 검색 + 필터 */}
       <div className="mb-10 space-y-3">
         {/* 검색창 */}
@@ -107,7 +227,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
           </svg>
           <input
             type="text"
-            placeholder="Search spots, neighborhoods..."
+            placeholder={t.searchPlaceholder}
             value={query}
             onChange={(e) => handleFilterChange(() => setQuery(e.target.value))}
             className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none"
@@ -127,9 +247,9 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
             className="text-xs font-semibold px-3 py-2 rounded-xl outline-none cursor-pointer"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--ink)" }}
           >
-            <option value="newest">Newest</option>
-            <option value="rating">Top Rated</option>
-            <option value="name">A–Z</option>
+            <option value="newest">{t.newest}</option>
+            <option value="rating">{t.topRated}</option>
+            <option value="name">{t.az}</option>
           </select>
 
           {/* 카테고리 */}
@@ -139,7 +259,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
             className="text-xs font-semibold px-3 py-2 rounded-xl outline-none cursor-pointer flex-1"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: activeCategory !== "All" ? "var(--orange)" : "var(--ink)" }}
           >
-            {categories.map((c) => <option key={c} value={c}>{c === "All" ? "All Categories" : c}</option>)}
+            {categories.map((c) => <option key={c} value={c}>{c === "All" ? t.allCategories : (isJa && CATEGORY_JA[c]) ? CATEGORY_JA[c] : c}</option>)}
           </select>
 
           {/* 지역 */}
@@ -149,17 +269,17 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
             className="text-xs font-semibold px-3 py-2 rounded-xl outline-none cursor-pointer flex-1"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: activeRegion !== "All" ? "var(--orange)" : "var(--ink)" }}
           >
-            {regions.map((r) => <option key={r} value={r}>{r === "All" ? "All Areas" : r}</option>)}
+            {regions.map((r) => <option key={r} value={r}>{r === "All" ? t.allAreas : (isJa && REGION_JA[r]) ? REGION_JA[r] : r}</option>)}
           </select>
         </div>
       </div>
 
       {/* 결과 수 */}
       <p className="text-xs font-semibold mb-6 tracking-wide" style={{ color: "var(--muted)" }}>
-        {filtered.length} {filtered.length === 1 ? "spot" : "spots"}
+        {filtered.length} {filtered.length === 1 ? t.spot : t.spots}
         {activeCategory !== "All" && ` · ${activeCategory}`}
-        {activeRegion !== "All" && ` in ${activeRegion}`}
-        {query && ` for "${query}"`}
+        {activeRegion !== "All" && ` ${t.inArea} ${isJa ? (REGION_JA[activeRegion] || activeRegion) : activeRegion}`}
+        {query && isJa ? `「${query}」` : query ? ` for "${query}"` : ""}
       </p>
 
       {/* 카드 그리드 */}
@@ -182,7 +302,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                   )}
                   <div className="p-4 flex flex-col flex-1">
                     <div className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: "var(--orange)" }}>
-                      {spot.region || spot.city}
+                      {isJa ? (REGION_JA[spot.region || spot.city || ""] || spot.region || spot.city) : (spot.region || spot.city)}
                     </div>
                     <div className="font-semibold text-sm mb-auto line-clamp-2" style={{ color: "var(--ink)" }}>
                       {spot.english_name || spot.name}
@@ -194,7 +314,7 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
                       </div>
                       {spot.category && (
                         <div className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}>
-                          {spot.category}
+                          {isJa ? (CATEGORY_JA[spot.category!] || spot.category) : spot.category}
                         </div>
                       )}
                     </div>
@@ -207,8 +327,8 @@ export default function SpotsClient({ spots }: { spots: Spot[] }) {
       ) : (
         <div className="text-center py-20">
           <div className="text-4xl mb-4">🍽️</div>
-          <p className="font-semibold mb-1" style={{ color: "var(--ink)" }}>No spots found</p>
-          <p className="text-sm" style={{ color: "var(--muted)" }}>Try a different search or filter</p>
+          <p className="font-semibold mb-1" style={{ color: "var(--ink)" }}>{t.noSpotsTitle}</p>
+          <p className="text-sm" style={{ color: "var(--muted)" }}>{t.noSpotsDesc}</p>
         </div>
       )}
 

@@ -28,6 +28,32 @@ PRICE_MAP = {
     "PRICE_LEVEL_VERY_EXPENSIVE": "$$$$",
 }
 
+CATEGORY_MAP = {
+    "korean_restaurant": "Korean",
+    "korean_barbecue_restaurant": "Korean BBQ",
+    "japanese_restaurant": "Japanese",
+    "ramen_restaurant": "Noodles",
+    "sushi_restaurant": "Japanese",
+    "chinese_restaurant": "Chinese",
+    "italian_restaurant": "Italian",
+    "pizza_restaurant": "Italian",
+    "french_restaurant": "Western",
+    "american_restaurant": "Western",
+    "hamburger_restaurant": "Western",
+    "thai_restaurant": "Asian",
+    "vietnamese_restaurant": "Asian",
+    "seafood_restaurant": "Seafood",
+    "cafe": "Bakery & Cafe",
+    "bakery": "Bakery & Cafe",
+    "coffee_shop": "Bakery & Cafe",
+    "bar": "Bar",
+    "wine_bar": "Bar",
+    "restaurant": "Korean",
+    "meal_takeaway": "Korean",
+    "meal_delivery": "Korean",
+    "fast_food_restaurant": "Western",
+}
+
 
 def parse_maps_url(url: str) -> tuple[str | None, float | None, float | None]:
     """Google Maps URL에서 가게 이름, 위도, 경도 추출."""
@@ -195,6 +221,15 @@ def parse_hours(place: dict) -> str:
     return "\n".join(descriptions)
 
 
+def normalize_region(region: str) -> str:
+    if not region:
+        return region
+    region = re.sub(r"-gu$", " District", region)
+    if region == "Yeongdeungpo":
+        region = "Yeongdeungpo District"
+    return region
+
+
 def parse_address_components(components: list) -> tuple[str, str]:
     city, region = "", ""
     for c in components:
@@ -202,7 +237,7 @@ def parse_address_components(components: list) -> tuple[str, str]:
         if "administrative_area_level_1" in types:
             city = c["longText"].replace(" Metropolitan City", "").replace(" Special City", "")
         if "sublocality_level_1" in types:
-            region = c["longText"]
+            region = normalize_region(c["longText"])
     return city, region
 
 
@@ -242,7 +277,8 @@ def enrich():
         r["address"] = r.get("address") or korean_address
         r["city"] = city or r.get("city", "")
         r["region"] = region or r.get("region", "")
-        r["category"] = r.get("category") or place.get("primaryType", "").replace("_", " ").title()
+        raw_type = place.get("primaryType", "")
+        r["category"] = r.get("category") or CATEGORY_MAP.get(raw_type, raw_type.replace("_", " ").title())
         r["lat"] = lat
         r["lng"] = lng
         r["google_maps_url"] = place.get("googleMapsUri", "")

@@ -4,12 +4,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useLang } from "@/lib/LanguageContext";
 
-const NAV = [
+const NAV_EN = [
   { label: "Spots", href: "/spots" },
   { label: "Guides", href: "/guides" },
   { label: "Map", href: "/map" },
   { label: "About", href: "/about" },
+];
+
+const NAV_JA = [
+  { label: "スポット", href: "/spots" },
+  { label: "ガイド", href: "/guides" },
+  { label: "マップ", href: "/map" },
+  { label: "について", href: "/about" },
 ];
 
 export default function Header() {
@@ -17,6 +25,9 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const { lang, setLang } = useLang();
+  const NAV = lang === "ja" ? NAV_JA : NAV_EN;
+  const searchLabel = lang === "ja" ? "検索 ✦" : "Search ✦";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -91,12 +102,27 @@ export default function Header() {
               </Link>
             );
           })}
+          <div className="ml-3 flex items-center rounded-full overflow-hidden" style={{ border: "1px solid var(--border)", background: transparent ? "rgba(255,255,255,0.1)" : "var(--surface)" }}>
+            {(["en", "ja"] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className="px-3 py-1.5 text-xs font-bold tracking-wide uppercase transition-all duration-200"
+                style={{
+                  background: lang === l ? "var(--orange)" : "transparent",
+                  color: lang === l ? "#fff" : transparent ? "rgba(255,255,255,0.6)" : "var(--muted)",
+                }}
+              >
+                {l === "en" ? "EN" : "JP"}
+              </button>
+            ))}
+          </div>
           <Link
             href="/search"
             className="ml-3 no-underline px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-all duration-200 hover:opacity-80"
             style={{ background: "var(--orange)", color: "#fff", boxShadow: "0 2px 12px rgba(245,166,35,0.35)" }}
           >
-            Search ✦
+            {searchLabel}
           </Link>
         </nav>
 

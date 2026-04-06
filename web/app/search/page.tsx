@@ -4,6 +4,66 @@ import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import { useLang } from "@/lib/LanguageContext";
+
+const T = {
+  en: {
+    searchPlaceholder: "Ask anything about food in Korea...",
+    aiSearch: "AI Search",
+    loading: "Finding the best spots for you...",
+    bapmapAi: "Bapmap AI",
+    sources: "Sources",
+    more: "More →",
+    backHome: "← Back to home",
+    relatedSpots: "Related spots",
+    comingSoon: "Coming soon",
+    chatTitle: "Ask Bapmap",
+    clear: "Clear",
+    chatEmpty: "Ask anything about these spots or Korean food.",
+    chatPlaceholder: "Ask a follow-up...",
+  },
+  ja: {
+    searchPlaceholder: "韓国グルメについて何でも聞いてください...",
+    aiSearch: "AI検索",
+    loading: "最適なスポットを探しています...",
+    bapmapAi: "Bapmap AI",
+    sources: "ソース",
+    more: "もっと見る →",
+    backHome: "← ホームに戻る",
+    relatedSpots: "関連スポット",
+    comingSoon: "近日公開",
+    chatTitle: "Bapmapに聞く",
+    clear: "クリア",
+    chatEmpty: "スポットや韓国グルメについて何でも聞いてください。",
+    chatPlaceholder: "続けて質問する...",
+  },
+};
+
+const CATEGORY_JA: Record<string, string> = {
+  "Asian": "アジア料理", "Bakery & Cafe": "ベーカリー＆カフェ", "Bar": "バー",
+  "Chinese": "中華料理", "Gopchang": "コプチャン", "Italian": "イタリア料理",
+  "Japanese": "日本料理", "Korean": "韓国料理", "Korean BBQ": "韓国式焼肉",
+  "Korean Soup": "韓国スープ", "Noodles": "麺料理", "Pizza": "ピザ",
+  "Seafood": "海鮮", "Street Food": "屋台・ストリートフード", "Tteokbokki": "トッポッキ", "Western": "洋食",
+};
+
+const REGION_JA: Record<string, string> = {
+  "Dongdaemun District": "東大門区", "Dongdaemun-gu": "東大門区",
+  "Dongjak District": "銅雀区", "Dongjak-gu": "銅雀区",
+  "Gangnam District": "江南区", "Gangnam-gu": "江南区",
+  "Guro District": "九老区", "Guro-gu": "九老区",
+  "Gwanak District": "冠岳区", "Gwanak-gu": "冠岳区",
+  "Gwangjin District": "広津区", "Gwangjin-gu": "広津区",
+  "Jongno District": "鍾路区", "Jongno-gu": "鍾路区",
+  "Jung District": "中区", "Jung-gu": "中区",
+  "Mapo District": "麻浦区", "Mapo-gu": "麻浦区",
+  "Seocho District": "瑞草区", "Seocho-gu": "瑞草区",
+  "Seodaemun District": "西大門区", "Seodaemun-gu": "西大門区",
+  "Seongdong District": "城東区", "Seongdong-gu": "城東区",
+  "Songpa District": "松坡区", "Songpa-gu": "松坡区",
+  "Yeongdeungpo": "永登浦", "Yeongdeungpo District": "永登浦区", "Yeongdeungpo-gu": "永登浦区",
+  "Yongsan District": "龍山区", "Yongsan-gu": "龍山区",
+};
 
 type Spot = {
   id: string;
@@ -33,6 +93,9 @@ function ChatDrawer({
   messages: ChatMessage[];
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }) {
+  const { lang } = useLang();
+  const t = T[lang];
+  const isJa = lang === "ja";
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -114,7 +177,7 @@ function ChatDrawer({
             <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "var(--orange)" }}>
               <span style={{ fontSize: "11px", color: "#fff" }}>✦</span>
             </div>
-            <span className="text-sm font-bold" style={{ color: "var(--ink)" }}>Ask Bapmap</span>
+            <span className="text-sm font-bold" style={{ color: "var(--ink)" }}>{t.chatTitle}</span>
           </div>
           <div className="flex items-center gap-2">
             {messages.length > 0 && (
@@ -123,7 +186,7 @@ function ChatDrawer({
                 className="text-[10px] px-2.5 py-1 rounded-full hover:opacity-70 transition-opacity"
                 style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}
               >
-                Clear
+                {t.clear}
               </button>
             )}
             <button
@@ -140,7 +203,7 @@ function ChatDrawer({
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           {messages.length === 0 && (
             <div className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>
-              Ask anything about these spots or Korean food.
+              {t.chatEmpty}
             </div>
           )}
           {messages.map((m, i) => (
@@ -167,9 +230,9 @@ function ChatDrawer({
                           </div>
                         )}
                         <div className="flex flex-col justify-center min-w-0">
-                          <div className="text-[9px] font-bold tracking-widest uppercase" style={{ color: "var(--orange)" }}>{s.region || s.city}</div>
+                          <div className="text-[9px] font-bold tracking-widest uppercase" style={{ color: "var(--orange)" }}>{isJa ? (REGION_JA[s.region || s.city] || s.region || s.city) : (s.region || s.city)}</div>
                           <div className="text-xs font-semibold truncate" style={{ color: "var(--ink)" }}>{name}</div>
-                          <div className="text-[10px]" style={{ color: "var(--muted)" }}>★ {s.rating} · {s.category}</div>
+                          <div className="text-[10px]" style={{ color: "var(--muted)" }}>★ {s.rating} · {isJa ? (CATEGORY_JA[s.category] || s.category) : s.category}</div>
                         </div>
                       </Link>
                     ) : (
@@ -179,7 +242,7 @@ function ChatDrawer({
                         </div>
                         <div className="flex flex-col justify-center">
                           <div className="text-xs font-semibold" style={{ color: "var(--muted)" }}>{name}</div>
-                          <div className="text-[10px] font-semibold" style={{ color: "var(--muted)" }}>Coming soon</div>
+                          <div className="text-[10px] font-semibold" style={{ color: "var(--muted)" }}>{t.comingSoon}</div>
                         </div>
                       </div>
                     );
@@ -223,7 +286,7 @@ function ChatDrawer({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
-              placeholder="Ask a follow-up..."
+              placeholder={t.chatPlaceholder}
               disabled={streaming}
               className="flex-1 rounded-full px-4 py-2.5 text-sm outline-none"
               style={{ border: "1.5px solid var(--border)", color: "var(--ink)", background: "#fff" }}
@@ -246,6 +309,9 @@ function ChatDrawer({
 }
 
 function SearchPageInner() {
+  const { lang } = useLang();
+  const t = T[lang];
+  const isJa = lang === "ja";
   const searchParams = useSearchParams();
   const q = searchParams.get("q") || "";
   const [answer, setAnswer] = useState("");
@@ -322,7 +388,7 @@ function SearchPageInner() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ask anything about food in Korea..."
+              placeholder={t.searchPlaceholder}
               autoFocus
               className="w-full rounded-full px-6 py-3.5 pr-14 text-sm outline-none transition-all"
               style={{
@@ -349,7 +415,7 @@ function SearchPageInner() {
         {q && (
           <div className="mb-8">
             <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-2" style={{ color: "var(--orange)" }}>
-              AI Search
+              {t.aiSearch}
             </p>
             <h1 className="font-display" style={{ fontSize: "clamp(1.5rem,4vw,2.2rem)", color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
               "{q}"
@@ -370,7 +436,7 @@ function SearchPageInner() {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
                   </div>
-                  <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Finding the best spots for you...</span>
+                  <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>{t.loading}</span>
                 </div>
                 <div className="space-y-2">
                   {[100, 85, 92].map((w, i) => (
@@ -388,7 +454,7 @@ function SearchPageInner() {
                     <span style={{ fontSize: "12px" }}>✦</span>
                   </div>
                   <span className="text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: "var(--orange)" }}>
-                    Bapmap AI
+                    {t.bapmapAi}
                   </span>
                 </div>
                 <div className="text-sm leading-[1.85]" style={{ color: "var(--ink)" }}>
@@ -421,7 +487,7 @@ function SearchPageInner() {
             {/* Sources */}
             {!loading && sources.length > 0 && (
               <div className="flex items-center gap-2 mb-4 flex-wrap">
-                <span className="text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: "var(--muted)" }}>Sources</span>
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: "var(--muted)" }}>{t.sources}</span>
                 {sources.map((s, i) => (
                   <span key={i} className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}>
                     {s}
@@ -444,10 +510,10 @@ function SearchPageInner() {
                   className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full transition-all hover:opacity-80"
                   style={{ background: "var(--orange)", color: "#fff" }}
                 >
-                  More →
+                  {t.more}
                 </button>
                 <Link href="/" className="inline-flex items-center gap-1 text-xs no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--muted)" }}>
-                  ← Back to home
+                  {t.backHome}
                 </Link>
               </div>
             )}
@@ -457,7 +523,7 @@ function SearchPageInner() {
           {spots.length > 0 && (
             <div className="space-y-3">
               <p className="text-[10px] font-bold tracking-[0.25em] uppercase" style={{ color: "var(--muted)" }}>
-                Related spots
+                {t.relatedSpots}
               </p>
               {spots.map((s) => {
                 const name = s.english_name || s.name;
@@ -480,7 +546,7 @@ function SearchPageInner() {
                     )}
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <div className="text-[9px] font-bold tracking-widest uppercase mb-0.5" style={{ color: "var(--orange)" }}>
-                        {s.region || s.city}
+                        {isJa ? (REGION_JA[s.region || s.city] || s.region || s.city) : (s.region || s.city)}
                       </div>
                       <div className="font-semibold text-sm leading-tight mb-1.5 truncate" style={{ color: "var(--ink)" }}>
                         {name}
@@ -496,7 +562,7 @@ function SearchPageInner() {
                         )}
                         {s.category && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}>
-                            {s.category}
+                            {isJa ? (CATEGORY_JA[s.category] || s.category) : s.category}
                           </span>
                         )}
                       </div>
@@ -514,7 +580,7 @@ function SearchPageInner() {
                     <div className="flex flex-col justify-center">
                       <div className="font-semibold text-sm mb-0.5" style={{ color: "var(--muted)" }}>{name}</div>
                       <div className="text-[10px] font-semibold px-2 py-0.5 rounded-full w-fit" style={{ background: "var(--border)", color: "var(--muted)" }}>
-                        Coming soon
+                        {t.comingSoon}
                       </div>
                     </div>
                   </div>

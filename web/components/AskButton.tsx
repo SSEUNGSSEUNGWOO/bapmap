@@ -1,8 +1,41 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useLang } from "@/lib/LanguageContext";
+
+const T = {
+  en: {
+    btnLabel: "Ask a local",
+    modalTitle: "Ask Seungwoo",
+    modalDesc: "I read every message and reply personally.",
+    placeholder: "e.g. Where to eat late night in Hongdae?",
+    emailPlaceholder: "Email (optional) — we'll notify you when answered",
+    send: "Send →",
+    sending: "Sending...",
+    sentTitle: "Got it.",
+    sentDesc: "I'll get back to you personally — and your answer might show up on the site.",
+    close: "Close",
+  },
+  ja: {
+    btnLabel: "ローカルに聞く",
+    modalTitle: "スンウに聞く",
+    modalDesc: "すべてのメッセージを読んで、個人的に返信します。",
+    placeholder: "例: 弘大で深夜に食べられる場所は？",
+    emailPlaceholder: "メール（任意）— 回答時にお知らせします",
+    send: "送信 →",
+    sending: "送信中...",
+    sentTitle: "受け取りました。",
+    sentDesc: "個人的に返信します — 回答がサイトに掲載されることもあります。",
+    close: "閉じる",
+  },
+};
 
 export default function AskButton() {
+  const pathname = usePathname();
+  const { lang } = useLang();
+  const t = T[lang];
+  if (pathname === "/search") return null;
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [email, setEmail] = useState("");
@@ -34,7 +67,7 @@ export default function AskButton() {
         style={{ background: "var(--orange)", boxShadow: "0 4px 20px rgba(245,166,35,0.45)" }}
       >
         <span>✦</span>
-        <span>Ask a local</span>
+        <span>{t.btnLabel}</span>
       </button>
 
       {/* Modal */}
@@ -51,31 +84,31 @@ export default function AskButton() {
             {sent ? (
               <div className="text-center py-4">
                 <div className="text-3xl mb-3">✦</div>
-                <p className="font-semibold text-base mb-1" style={{ color: "var(--ink)" }}>Got it.</p>
-                <p className="text-sm" style={{ color: "var(--muted)" }}>I'll get back to you personally — and your answer might show up on the site.</p>
+                <p className="font-semibold text-base mb-1" style={{ color: "var(--ink)" }}>{t.sentTitle}</p>
+                <p className="text-sm" style={{ color: "var(--muted)" }}>{t.sentDesc}</p>
                 <button
                   onClick={() => setOpen(false)}
                   className="mt-5 px-5 py-2.5 rounded-full text-sm font-semibold text-white"
                   style={{ background: "var(--orange)" }}
                 >
-                  Close
+                  {t.close}
                 </button>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-display text-lg" style={{ color: "var(--ink)", letterSpacing: "-0.02em" }}>
-                    Ask Seungwoo
+                    {t.modalTitle}
                   </h3>
                   <button onClick={() => setOpen(false)} className="text-xl leading-none" style={{ color: "var(--muted)" }}>×</button>
                 </div>
                 <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
-                  I read every message and reply personally.
+                  {t.modalDesc}
                 </p>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder="e.g. Where to eat late night in Hongdae?"
+                  placeholder={t.placeholder}
                   className="w-full rounded-xl px-4 py-3 text-sm resize-none outline-none"
                   style={{
                     border: "1.5px solid var(--border)",
@@ -89,7 +122,7 @@ export default function AskButton() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email (optional) — we'll notify you when answered"
+                  placeholder={t.emailPlaceholder}
                   className="mt-2 w-full rounded-xl px-4 py-2.5 text-sm outline-none"
                   style={{
                     border: "1.5px solid var(--border)",
@@ -103,7 +136,7 @@ export default function AskButton() {
                   className="mt-3 w-full py-3 rounded-full text-sm font-semibold text-white transition-opacity"
                   style={{ background: "var(--orange)", opacity: loading || !text.trim() ? 0.5 : 1 }}
                 >
-                  {loading ? "Sending..." : "Send →"}
+                  {loading ? t.sending : t.send}
                 </button>
               </>
             )}

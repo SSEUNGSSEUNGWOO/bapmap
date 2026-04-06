@@ -7,9 +7,12 @@ from supabase import create_client
 from anthropic import Anthropic
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
-from pipeline.enrich import search_place, search_place_by_url, parse_maps_url, to_english_name, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components
-from pipeline.generator import generate_post, generate_metadata
+from pipeline.enrich import search_place, search_place_by_url, parse_maps_url, to_english_name, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components, normalize_region
+from pipeline.generator import generate_post, generate_post_ja, generate_metadata
 from pipeline.rag.embed import embed_spot
+from pipeline.fill_ja_metadata import translate_what_to_order
+from pipeline.fill_ja_reviews import translate_reviews
+from pipeline.fill_ja_guides import translate as translate_guide
 
 load_dotenv()
 
@@ -118,12 +121,16 @@ with tab1:
 
         st.divider()
         st.markdown("##### 기본 정보 수정")
-        r1c1, r1c2, r1c3 = st.columns(3)
-        with r1c1:
+        r0c1, r0c2 = st.columns(2)
+        with r0c1:
+            name = st.text_input("한글 이름", value=name, key="edit_korean_name")
+        with r0c2:
             english_name = st.text_input("영어 이름", value=english_name, key="edit_english_name")
-        with r1c2:
+
+        r1c1, r1c2 = st.columns(2)
+        with r1c1:
             city = st.text_input("도시 (city)", value=city, key="edit_city")
-        with r1c3:
+        with r1c2:
             region = st.text_input("지역 (region)", value=region, key="edit_region")
 
         CATEGORIES = [
@@ -146,7 +153,7 @@ with tab1:
         with r2c2:
             price_level = st.text_input("가격대", value=price_level, key="edit_price_level")
         with r2c3:
-            subway = st.text_input("지하철", value=subway, key="edit_subway")
+            subway = st.text_input("지하철 (영어로 입력: e.g. Gangnam Station, 5 min walk)", value=subway, key="edit_subway")
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
@@ -202,7 +209,7 @@ with tab1:
                         "name": name,
                         "english_name": english_name,
                         "city": city,
-                        "region": region,
+                        "region": normalize_region(region),
                         "category": category,
                         "address": korean_address,
                         "english_address": english_address,
@@ -271,14 +278,27 @@ with tab2:
                 with st.spinner(f"{name} 생성 중... ({i+1}/{len(memo_done)})"):
                     full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
                     generated = generate_post(full_spot)
+                    generated_ja = generate_post_ja(generated)
                     meta = generate_metadata(full_spot)
-                    update = {"content": generated, "status": "업로드완료", "what_to_order": meta.get("what_to_order") or [], "good_for": meta.get("good_for") or []}
+                    what_to_order = meta.get("what_to_order") or []
+                    update = {
+                        "content": generated,
+                        "content_ja": generated_ja,
+                        "status": "업로드완료",
+                        "what_to_order": what_to_order,
+                        "good_for": meta.get("good_for") or [],
+                    }
                     try:
                         spice = meta.get("spice_level")
                         if spice is not None:
                             update["spice_level"] = int(spice)
                     except (TypeError, ValueError):
                         pass
+                    if what_to_order:
+                        update["what_to_order_ja"] = translate_what_to_order(what_to_order)
+                    reviews = full_spot.get("google_reviews") or []
+                    if reviews:
+                        update["google_reviews_ja"] = translate_reviews(reviews)
                     sb.table("spots").update(update).eq("id", r["id"]).execute()
                     full_spot["content"] = generated
                     try:
@@ -301,7 +321,7 @@ with tab2:
             with loc_col1:
                 new_region = st.text_input("지역 (region)", value=r.get("region") or "", key=f"region_{r['id']}")
             with loc_col2:
-                new_subway = st.text_input("지하철역 (subway)", value=r.get("subway") or "", key=f"subway_{r['id']}")
+                new_subway = st.text_input("지하철역 (영어로: e.g. Gangnam Station, 5 min walk)", value=r.get("subway") or "", key=f"subway_{r['id']}")
             with loc_col3:
                 _all_cats = ["Asian", "Bakery & Cafe", "Bar", "Chinese", "Chicken",
                              "Gopchang", "Italian", "Japanese", "Korean", "Korean BBQ",
@@ -325,7 +345,7 @@ with tab2:
             with col_save:
                 if st.button("저장", key=f"save_{r['id']}"):
                     auto_status = "업로드완료" if content.strip() else ("메모완료" if memo.strip() else "메모필요")
-                    sb.table("spots").update({"memo": memo, "content": content, "status": auto_status, "region": new_region, "subway": new_subway, "category": new_category, "spice_level": new_spice if new_spice > 0 else None}).eq("id", r["id"]).execute()
+                    sb.table("spots").update({"memo": memo, "content": content, "status": auto_status, "region": normalize_region(new_region), "subway": new_subway, "category": new_category, "spice_level": new_spice if new_spice > 0 else None}).eq("id", r["id"]).execute()
                     st.success("저장됨!")
                     st.rerun()
             with col_gen:
@@ -337,14 +357,27 @@ with tab2:
                             sb.table("spots").update({"memo": memo}).eq("id", r["id"]).execute()
                             full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
                             generated = generate_post(full_spot)
+                            generated_ja = generate_post_ja(generated)
                             meta = generate_metadata(full_spot)
-                            update = {"content": generated, "status": "업로드완료", "what_to_order": meta.get("what_to_order") or [], "good_for": meta.get("good_for") or []}
+                            what_to_order = meta.get("what_to_order") or []
+                            update = {
+                                "content": generated,
+                                "content_ja": generated_ja,
+                                "status": "업로드완료",
+                                "what_to_order": what_to_order,
+                                "good_for": meta.get("good_for") or [],
+                            }
                             try:
                                 spice = meta.get("spice_level")
                                 if spice is not None:
                                     update["spice_level"] = int(spice)
                             except (TypeError, ValueError):
                                 pass
+                            if what_to_order:
+                                update["what_to_order_ja"] = translate_what_to_order(what_to_order)
+                            reviews = full_spot.get("google_reviews") or []
+                            if reviews:
+                                update["google_reviews_ja"] = translate_reviews(reviews)
                             sb.table("spots").update(update).eq("id", r["id"]).execute()
                             full_spot["content"] = generated
                             try:
@@ -383,18 +416,24 @@ with tab3:
                 st.error("제목과 Slug는 필수")
             else:
                 spot_slugs = [s.strip() for s in g_spots.strip().splitlines() if s.strip()]
-                sb.table("guides").upsert({
-                    "slug": g_slug,
-                    "title": g_title,
-                    "subtitle": g_subtitle,
-                    "cover_image": g_cover,
-                    "category_tag": g_tag,
-                    "intro": g_intro,
-                    "body": g_body,
-                    "spot_slugs": spot_slugs,
-                    "status": g_status,
-                }).execute()
-                st.success(f"✅ '{g_title}' 저장 완료")
+                with st.spinner("저장 및 일본어 번역 중..."):
+                    guide_data = {
+                        "slug": g_slug,
+                        "title": g_title,
+                        "subtitle": g_subtitle,
+                        "cover_image": g_cover,
+                        "category_tag": g_tag,
+                        "intro": g_intro,
+                        "body": g_body,
+                        "spot_slugs": spot_slugs,
+                        "status": g_status,
+                        "title_ja": translate_guide(g_title, title_mode=True) if g_title else "",
+                        "subtitle_ja": translate_guide(g_subtitle, title_mode=True) if g_subtitle else "",
+                        "intro_ja": translate_guide(g_intro) if g_intro else "",
+                        "body_ja": translate_guide(g_body) if g_body else "",
+                    }
+                    sb.table("guides").upsert(guide_data).execute()
+                st.success(f"✅ '{g_title}' 저장 완료 (일본어 포함)")
                 st.rerun()
 
     st.divider()
@@ -422,17 +461,22 @@ with tab3:
             with col1:
                 if st.button("업데이트", key=f"upd_{g['id']}"):
                     spot_slugs = [s.strip() for s in e_spots.strip().splitlines() if s.strip()]
-                    sb.table("guides").update({
-                        "title": e_title,
-                        "subtitle": e_subtitle,
-                        "cover_image": e_cover,
-                        "category_tag": e_tag,
-                        "intro": e_intro,
-                        "body": e_body,
-                        "spot_slugs": spot_slugs,
-                        "status": e_status,
-                    }).eq("id", g["id"]).execute()
-                    st.success("✅ 업데이트 완료")
+                    with st.spinner("업데이트 및 일본어 번역 중..."):
+                        sb.table("guides").update({
+                            "title": e_title,
+                            "subtitle": e_subtitle,
+                            "cover_image": e_cover,
+                            "category_tag": e_tag,
+                            "intro": e_intro,
+                            "body": e_body,
+                            "spot_slugs": spot_slugs,
+                            "status": e_status,
+                            "title_ja": translate_guide(e_title, title_mode=True) if e_title else "",
+                            "subtitle_ja": translate_guide(e_subtitle, title_mode=True) if e_subtitle else "",
+                            "intro_ja": translate_guide(e_intro) if e_intro else "",
+                            "body_ja": translate_guide(e_body) if e_body else "",
+                        }).eq("id", g["id"]).execute()
+                    st.success("✅ 업데이트 완료 (일본어 포함)")
                     st.rerun()
             with col2:
                 if st.button("🗑️ 삭제", key=f"del_{g['id']}"):
