@@ -2,10 +2,12 @@ import os
 import json
 from pathlib import Path
 from anthropic import Anthropic
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
 client = Anthropic()
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 PROMPT = """You are a food writer for Bapmap — a Korean local spot guide for English-speaking tourists visiting Korea for the first time or second time.
@@ -19,12 +21,14 @@ Spot data:
 
 WRITING STYLE (read carefully):
 - Write like a real person, not a content bot.
+- Tone is warm and welcoming — like a friendly Korean local who genuinely wants you to have a great experience. Encouraging, not intimidating.
 - Vary sentence length. Short punchy sentences. Then a longer one that builds on it.
 - Do NOT use: "nestled", "bustling", "hidden gem", "must-try", "don't miss out", "culinary journey", "food lovers"
-- Do NOT start every sentence with a compliment. It's okay to say "the wait can be brutal" or "it's not the prettiest space"
+- Do NOT start every sentence with a compliment. It's okay to say "the wait can be brutal" or "it's not the prettiest space" — but always follow up with why it's still worth it.
 - Use one strong adjective instead of three weak ones
 - Occasionally share a practical insider tip that only a local would know (e.g. best time to avoid queues, what NOT to order, seating tips)
 - If the Google reviews mention something specific (wait times, a standout dish, a tip), weave it in naturally — don't copy it
+- For first-timers: be encouraging about unfamiliar foods. Make them feel excited, not anxious.
 
 STRICT LANGUAGE RULES:
 - Write entirely in English. No Korean characters in body text.
@@ -36,7 +40,7 @@ STRICT LANGUAGE RULES:
 CONTENT REQUIREMENTS:
 1. H1 title — specific, location + food type (not generic)
 2. Opening hook — 2-3 sentences max. Why this place, why now
-3. "What to Expect" — essential for first-timers. If the food is unfamiliar (offal, fermented foods, raw seafood, braised intestines, blood sausage, etc.), describe it warmly. Compare to something familiar if helpful. Don't scare people off.
+3. "What to Expect" — essential for first-timers. If the food is unfamiliar to Western palates (offal, fermented foods, raw seafood, braised intestines, blood sausage, fish paste, rice cakes, etc.), explain what it actually is — texture, flavor, how it's eaten. Compare to something familiar if helpful (e.g. "think of it like a rich bone broth, similar to French onion soup but deeper"). Don't scare people off — make them curious.
 4. What to Order — 2-3 specific recommendations. Be direct.
 5. Atmosphere & Vibe — honest, brief
 6. Practical Info:
@@ -57,6 +61,21 @@ SEO: naturally include "Seoul [food type]", "[neighborhood] restaurant", "local 
 GEO: be specific and citable — exact minutes, exact hours, concrete dish descriptions. AI search engines (Perplexity, ChatGPT) cite specific facts over vague descriptions.
 
 Length: 650-850 words."""
+
+
+TRANSLATE_JA_PROMPT = """Translate the following Korean restaurant blog post into natural Japanese.
+
+Rules:
+- Keep all markdown formatting (headings, tables, bold, etc.)
+- Keep restaurant names in romanized form + Korean in parentheses on first mention
+- Menu items: Japanese description + Korean name in parentheses
+- Keep the tone warm and local — like a tip from a Korean friend
+- Do NOT add or remove content. Translate faithfully.
+- Output Japanese only.
+
+--- ORIGINAL ---
+{content}
+--- END ---"""
 
 
 METADATA_PROMPT = """You are analyzing a Korean restaurant for Bapmap, a guide for English-speaking tourists.
@@ -101,6 +120,15 @@ def generate_metadata(restaurant: dict) -> dict:
         return json.loads(text.strip())
     except Exception:
         return {"what_to_order": [], "good_for": []}
+
+
+def generate_post_ja(english_content: str) -> str:
+    res = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        max_tokens=2000,
+        messages=[{"role": "user", "content": TRANSLATE_JA_PROMPT.format(content=english_content)}]
+    )
+    return res.choices[0].message.content
 
 
 def generate_post(restaurant: dict) -> str:
