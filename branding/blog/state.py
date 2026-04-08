@@ -3,6 +3,7 @@ from typing import TypedDict, Optional
 
 class BlogState(TypedDict):
     post_type: str               # "spot" | "list" | "guide"
+    provider: str                # "anthropic" | "openai"
     topic: str
     spot_ids: list[str]
     guide_id: Optional[str]

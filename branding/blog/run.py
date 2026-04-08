@@ -16,10 +16,12 @@ def main():
     parser.add_argument("--topic", type=str, default="")
     parser.add_argument("--spot-ids", nargs="*", default=[])
     parser.add_argument("--guide-id", type=str, default=None)
+    parser.add_argument("--provider", choices=["anthropic", "openai"], default="anthropic")
     args = parser.parse_args()
 
     initial_state = {
         "post_type": args.type,
+        "provider": args.provider,
         "topic": args.topic,
         "spot_ids": args.spot_ids,
         "guide_id": args.guide_id,

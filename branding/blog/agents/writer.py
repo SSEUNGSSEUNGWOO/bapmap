@@ -1,7 +1,26 @@
 import os
 from anthropic import Anthropic
+from openai import OpenAI
 
-client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
+def _generate(prompt: str, provider: str, max_tokens: int = 1500) -> str:
+    if provider == "openai":
+        res = openai_client.chat.completions.create(
+            model="gpt-4o",
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return res.choices[0].message.content
+    else:
+        res = anthropic_client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return res.content[0].text
 
 SPOT_TEMPLATE = """You are a food writer for Bapmap — a Korean local spot guide for English-speaking travelers.
 
@@ -90,13 +109,9 @@ def writer(state: dict) -> dict:
             spots_data="\n\n".join(_format_spot(s) for s in spots),
         ) + guide_context + revision_note
 
-    print(f"[Writer] 포스트 작성 중... (revision #{state.get('revision_count', 0)})")
-    res = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1500,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    draft = res.content[0].text
+    provider = state.get("provider", "anthropic")
+    print(f"[Writer] 포스트 작성 중... (revision #{state.get('revision_count', 0)}, {provider})")
+    draft = _generate(prompt, provider)
     return {**state, "draft": draft}
 
 

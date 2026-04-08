@@ -1,8 +1,27 @@
 import os
 import json
 from anthropic import Anthropic
+from openai import OpenAI
 
-client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
+def _generate(prompt: str, provider: str) -> str:
+    if provider == "openai":
+        res = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            max_tokens=500,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return res.choices[0].message.content
+    else:
+        res = anthropic_client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=500,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return res.content[0].text
 
 PROMPT = """You are a content quality evaluator for Bapmap, a Korean local food guide for English-speaking travelers.
 
@@ -31,17 +50,14 @@ Return JSON only."""
 
 
 def eval_agent(state: dict) -> dict:
-    print("[Eval] 품질 평가 중...")
-    res = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=500,
-        messages=[{"role": "user", "content": PROMPT.format(
-            title=state.get("title", ""),
-            draft=state.get("draft", ""),
-        )}],
-    )
+    provider = state.get("provider", "anthropic")
+    print(f"[Eval] 품질 평가 중... ({provider})")
+    raw = _generate(PROMPT.format(
+        title=state.get("title", ""),
+        draft=state.get("draft", ""),
+    ), provider)
     try:
-        text = res.content[0].text
+        text = raw
         text = text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
         data = json.loads(text)
     except Exception:

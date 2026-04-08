@@ -1,8 +1,27 @@
 import os
 import json
 from anthropic import Anthropic
+from openai import OpenAI
 
-client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
+def _generate(prompt: str, provider: str) -> str:
+    if provider == "openai":
+        res = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            max_tokens=4000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return res.choices[0].message.content
+    else:
+        res = anthropic_client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=4000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return res.content[0].text
 
 PROMPT = """You are an SEO and GEO (Generative Engine Optimization) specialist for a Korean food travel blog.
 
@@ -24,18 +43,15 @@ Return JSON only."""
 
 
 def seo_geo(state: dict) -> dict:
-    print("[SEO/GEO] 최적화 중...")
-    res = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=4000,
-        messages=[{"role": "user", "content": PROMPT.format(
-            post_type=state.get("post_type", ""),
-            topic=state.get("topic", ""),
-            draft=state.get("draft", ""),
-        )}],
-    )
+    provider = state.get("provider", "anthropic")
+    print(f"[SEO/GEO] 최적화 중... ({provider})")
+    raw = _generate(PROMPT.format(
+        post_type=state.get("post_type", ""),
+        topic=state.get("topic", ""),
+        draft=state.get("draft", ""),
+    ), provider)
     try:
-        text = res.content[0].text.strip()
+        text = raw.strip()
         # 마크다운 코드블록 제거
         if "```" in text:
             text = text.split("```")[1]
