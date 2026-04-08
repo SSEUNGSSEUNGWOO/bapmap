@@ -1,44 +1,34 @@
 ---
-title: Namjimleus Seongsu: Thai Food Worth Going Underground For
-meta_description: Namjimleus in Seongsu serves elevated Thai cuisine in a cozy basement. Tom yum with gopchang (₩18,000) and soft-shell crab curry (₩29,500) draw crowds.
-keywords: Thai food Seongsu Seoul, Namjimleus restaurant, tom yum gopchang Seoul, Seongsu Station restaurants, Korean-Thai fusion dining
+title: Namjimleus Seongsu: Hidden Thai Restaurant Seoul
+meta_description: Namjimleus in Seongsu is a basement Thai restaurant in Seoul known for authentic tom yum with gopchang and soft-shell crab curry. Reserve ahead.
+keywords: Thai restaurant Seoul, Seongsu restaurant, tom yum gopchang, soft-shell crab panang curry, basement restaurant Seoul
 eval_score: 43/50
 ---
 
-# Namjimleus (남짐릇), Seongsu: Thai Food Worth Going Underground For
+*BAPMAP - Recommended by a Korean who actually eats well.*
 
-There's a staircase on a side street near Seongsu Station. No big sign. You go down, and suddenly you're in a room that smells like lemongrass and fish sauce and something charred in a wok. The basement isn't the fluorescent kind—it's built into what was probably a warehouse, so there's actual airflow and high ceilings that make it feel more like a deliberate dining room than a bunker. After your fifteenth café in Seongsu, this feels like a reasonable reward.
+# Namjimleus (남짐릇), Seongsu: The Basement Thai Place Worth the Wait
 
----
+If you're searching for an authentic Thai restaurant in Seoul that serves dishes beyond the standard pad thai chains, Namjimleus in the Seongsu district is the answer. There's a staircase off a quiet Seongsu street that takes you underground, and at the bottom of it is a Thai restaurant that does not look like it belongs in Seoul. That's the point.
 
-Namjimleus does Thai food in a basement space that, against most odds, doesn't feel depressing. Warm lighting, dark wood, decorative touches that look like someone actually went to Thailand rather than just Googled it. It seats maybe thirty people. Probably fewer. It fills up, and I showed up without a reservation, which meant standing around trying to look casual while being very obviously in the way. Don't do that. Book ahead through Naver (검색 후 예약 가능) or call ahead—they take walk-ins only if there's room.
+Named after a region in Thailand, Namjimleus runs a small room with warm lighting, wooden furniture, and decorative touches that feel considered rather than Googled. The kind of place where someone actually thought about what it should feel like to sit here. Bangkok side street is a stretch, but it's closer to that than to the pad thai chains you've already walked past six times this trip.
 
----
+## What to Order
 
-**Gopchang Tom Yum Rice Noodles (곱창똠얌쌀국수) — ₩18,000**
+The **Gopchang Tom Yum Rice Noodles (곱창똠얌쌀국수, ₩18,000)** are the reason people come back. Tom yum in most Seoul Thai restaurants lands somewhere between sweet and citrusy and not much else. This one has actual depth — the broth pulls umami from the gopchang (intestines) in a way that makes sense once you're eating it and makes you wish you'd ordered a second bowl before finishing the first. The intestines are cleaned well enough that they're not the main event, just part of why the soup tastes the way it does. If you have one thing here, it's this.
 
-This is the one I'd order first. Tom yum broth usually lands somewhere between sour and aggressively sour, but this version has more depth—the intestines (gopchang) pull a lot of weight here, giving the broth a fatty, mineral richness that makes it feel closer to a serious beef noodle soup than a hotel buffet Thai situation. The heat registers around a 5 or 6 out of 10, present but not theatrical, which makes it accessible without feeling neutered. The rice noodles soak it up well. I finished all of it and briefly considered ordering another.
+The **Soft-shell Crab Panang Curry (뿌님팟퐁커리, ₩29,500)** costs more and earns it. Creamy without being heavy, the curry has enough coconut and enough heat to stay interesting through the whole plate. The soft-shell crab holds up better than you'd expect — it doesn't go soggy in the sauce. People talk about this dish a lot in the reviews, and they're not wrong to.
 
-**Soft-Shell Crab Panang Curry (뿌님팟퐁커리) — ₩29,500**
+**Khao Kha Mu (pig's feet rice)** is the quieter order, priced around ₩16,000. Tender braised pork, rice, a seasoning that's subtle and balanced in a way that makes it feel almost understated next to the curry and the tom yum. Order it if you want something that doesn't compete with itself.
 
-Expensive for the portion. Worth it anyway. The curry is thick, coconut-forward, and a little sweet—more Panang than the name suggests, which is fine because Panang is good. The soft-shell crab comes whole, lightly battered, and holds up texturally in a way that fried seafood usually doesn't once it hits a sauce. The whole thing tastes like it was thought about, which isn't guaranteed anywhere.
+## One Honest Caveat
 
-**Khao Kha Mu (pig's feet rice)**
+Some visitors have noted the food skews milder than Thai food in Thailand. That's fair. There's an adjustment happening here — not dramatic, but real. If you're coming in expecting your face to fall off, calibrate accordingly. The flavors are present and good; they're just not uncompromising. Whether that bothers you depends on where your baseline is.
 
-The quieter option on the table. Braised pig's feet over rice, seasoned in that low-key five-spice way where everything tastes gently correct rather than emphatic. If you want punchy, order the tom yum. If you want something that just steadily makes you feel better about your life choices, this is it.
+## Logistics
 
----
+Namejimeus is a three-minute walk from Seongsu Station (Exit 2). You're looking for a basement entrance — keep your eyes down, not up. The restaurant operates on a split schedule: weekday service runs from 11:00 AM to 2:30 PM and again from 5:00 PM to 9:00 PM. On weekends, lunch service starts an hour later at noon with the same evening hours. The kitchen closes between services, so arriving at 3:30 PM won't work. Make a reservation — the space is small and moves fast at both services, but walk-ins do wait. It's not complicated, so don't make it complicated.
 
-**The honest caveat:** A few people have noted that the food here is calibrated toward Korean palates—meaning the heat and funk have been dialed back compared to what you'd get in Bangkok or even a less crossover-friendly Thai spot in Seoul. I don't think that's wrong exactly. Everything tasted intentional, not watered down. But if you're coming specifically because you want your face taken off, you might leave wanting slightly more edge. I'd say it's Thai food that Koreans and non-Koreans can both eat comfortably, which is either a feature or a limitation depending on what you're after.
+## Why It Matters
 
----
-
-**Getting there:** Seongsu Station (Seoul Metro Line 2), Exit 3. About a three-minute walk. It's basement level—look for the stairs going down on the side street; the entrance is unmarked but you'll smell the wok.
-
-**Hours:** Monday through Friday, 11:00 AM–2:30 PM and 5:00–9:00 PM. Saturday and Sunday, 12:00–3:30 PM and 5:00–9:00 PM. Closed on Tuesdays.
-
-**Reservations:** Strongly recommended. Call ahead or book through Naver to secure a table, especially on weekends.
-
----
-
-bapmap.com/spots/namjimleus
+This is the one I'd bring someone who's already done a few Korean meals and wants something that sits differently. It's not Korean food. It's also not performing Thai food for a crowd that doesn't know Thai food. It lands somewhere specific and mostly delivers on that.

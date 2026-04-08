@@ -21,7 +21,7 @@ Return JSON:
   "feedback": "specific actionable feedback if not approved — quote the AI-sounding phrases found"
 }}
 
-Approval threshold: total >= 38/50
+Approval threshold: total >= 40/50
 
 Title: {title}
 Draft:

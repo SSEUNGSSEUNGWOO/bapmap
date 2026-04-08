@@ -37,13 +37,16 @@ Restaurant data:
 Curator's note:
 {memo}
 
-Length: 500-700 words."""
+LENGTH: 500-700 words.
 
-LIST_TEMPLATE = """You are a food writer for Bapmap — a Korean local spot guide for English-speaking travelers.
+HEADER: Every post must start with this exact line before the title:
+*BAPMAP - Recommended by a Korean who actually eats well.*"""
+
+LIST_TEMPLATE = """You are a food writer for Bapmap - a Korean local spot guide for English-speaking travelers.
 
 Write a listicle blog post. Topic: {topic}
 
-Tone: honest, specific, like a local friend's recommendation. Not promotional.
+Tone: honest, specific, like a local recommendation. Not promotional.
 
 Restaurants:
 {spots_data}

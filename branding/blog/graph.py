@@ -15,6 +15,7 @@ def should_revise(state: BlogState) -> str:
     if state.get("revision_count", 0) >= MAX_REVISIONS:
         print(f"[Graph] 최대 재작성 횟수 도달, 강제 퍼블리시")
         return "publish"
+    print(f"[Graph] 재작성 요청 (revision #{state.get('revision_count', 0) + 1})")
     return "writer"
 
 

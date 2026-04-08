@@ -11,6 +11,8 @@ def publish(state: dict) -> dict:
     slug = state.get("slug", "post")
     path = out_dir / f"{slug}.md"
 
+    BRAND_HEADER = "*BAPMAP - Recommended by a Korean who actually eats well.*\n\n"
+
     content = f"""---
 title: {state.get('title', '')}
 meta_description: {state.get('meta_description', '')}
@@ -18,7 +20,7 @@ keywords: {', '.join(state.get('keywords', []))}
 eval_score: {state.get('eval_score', 0)}/50
 ---
 
-{state.get('draft', '')}
+{BRAND_HEADER}{state.get('draft', '')}
 """
     path.write_text(content, encoding="utf-8")
     print(f"[Publish] 저장 완료: {path}")
