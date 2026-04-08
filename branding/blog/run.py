@@ -15,12 +15,15 @@ def main():
     parser.add_argument("--type", choices=["spot", "list", "guide"], default="spot")
     parser.add_argument("--topic", type=str, default="")
     parser.add_argument("--spot-ids", nargs="*", default=[])
+    parser.add_argument("--guide-id", type=str, default=None)
     args = parser.parse_args()
 
     initial_state = {
         "post_type": args.type,
         "topic": args.topic,
         "spot_ids": args.spot_ids,
+        "guide_id": args.guide_id,
+        "guide_data": None,
         "spots_data": [],
         "draft": "",
         "title": "",

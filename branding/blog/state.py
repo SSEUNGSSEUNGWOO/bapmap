@@ -5,6 +5,8 @@ class BlogState(TypedDict):
     post_type: str               # "spot" | "list" | "guide"
     topic: str
     spot_ids: list[str]
+    guide_id: Optional[str]
+    guide_data: Optional[dict]
     spots_data: list[dict]
     draft: str
     title: str

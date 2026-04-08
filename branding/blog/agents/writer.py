@@ -80,10 +80,15 @@ def writer(state: dict) -> dict:
             slug=slug,
         ) + revision_note
     else:
+        guide = state.get("guide_data") or {}
+        topic = state.get("topic") or guide.get("title", "")
+        guide_context = ""
+        if guide:
+            guide_context = f"\nGuide intro (use as editorial direction):\n{guide.get('intro', '')}\n"
         prompt = LIST_TEMPLATE.format(
-            topic=state.get("topic", ""),
+            topic=topic,
             spots_data="\n\n".join(_format_spot(s) for s in spots),
-        ) + revision_note
+        ) + guide_context + revision_note
 
     print(f"[Writer] 포스트 작성 중... (revision #{state.get('revision_count', 0)})")
     res = client.messages.create(

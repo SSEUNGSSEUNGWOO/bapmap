@@ -27,7 +27,7 @@ def seo_geo(state: dict) -> dict:
     print("[SEO/GEO] 최적화 중...")
     res = client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=2000,
+        max_tokens=4000,
         messages=[{"role": "user", "content": PROMPT.format(
             post_type=state.get("post_type", ""),
             topic=state.get("topic", ""),
@@ -35,11 +35,16 @@ def seo_geo(state: dict) -> dict:
         )}],
     )
     try:
-        text = res.content[0].text
-        text = text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-        data = json.loads(text)
-    except Exception:
-        print("[SEO/GEO] JSON 파싱 실패, 원본 유지")
+        text = res.content[0].text.strip()
+        # 마크다운 코드블록 제거
+        if "```" in text:
+            text = text.split("```")[1]
+            if text.startswith("json"):
+                text = text[4:]
+        data = json.loads(text.strip())
+    except Exception as e:
+        print(f"[SEO/GEO] JSON 파싱 실패: {e}")
+        print(f"[SEO/GEO] 원문: {res.content[0].text[:200]}")
         return state
 
     return {
