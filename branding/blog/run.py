@@ -44,13 +44,21 @@ def main():
     print(f"\n🍖 Bapmap Blog Agent 시작")
     print(f"   type: {args.type} | topic: {args.topic or '(스팟 기반)'}\n")
 
+    # Medium 타겟이면 그래프는 local로 돌리고, 이후 Medium 퍼블리싱 별도 실행
+    graph_state = {**initial_state, "publish_target": "local"}
     graph = build_graph()
-    result = graph.invoke(initial_state)
+    result = graph.invoke(graph_state)
 
-    print(f"\n✅ 완료!")
+    print(f"\n✅ 생성 완료!")
     print(f"   제목: {result.get('title')}")
     print(f"   점수: {result.get('eval_score')}/50")
     print(f"   저장: {result.get('published_url')}")
+
+    if args.target == "medium":
+        from branding.blog.agents.publish_medium import publish_to_medium
+        print(f"\n[Medium] 퍼블리싱 시작...")
+        result = publish_to_medium(result)
+        print(f"   URL: {result.get('published_url')}")
 
 
 if __name__ == "__main__":

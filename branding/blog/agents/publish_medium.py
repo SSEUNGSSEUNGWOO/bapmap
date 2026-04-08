@@ -8,36 +8,48 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-def _wait_for_login(driver):
-    print("\n[Medium] 브라우저가 열렸습니다.")
-    print("[Medium] Google 로그인 후 Medium 홈이 뜨면 엔터를 눌러주세요...")
-    input("[Medium] 로그인 완료 후 엔터 ▶ ")
+def _wait_for_login(driver, timeout: int = 60):
+    print(f"\n[Medium] 브라우저가 열렸습니다.")
+    print(f"[Medium] {timeout}초 안에 Google 로그인을 완료해주세요...")
+    # Medium 홈 피드가 뜰 때까지 대기
+    for i in range(timeout):
+        if "medium.com" in driver.current_url and "/m/signin" not in driver.current_url:
+            print("[Medium] 로그인 감지됨!")
+            return
+        time.sleep(1)
+    print("[Medium] 타임아웃 — 로그인 상태로 진행 시도")
 
 
 def _create_post(driver, title: str, body: str, tags: list[str]) -> str:
     print("[Medium] 새 글 작성 페이지로 이동...")
     driver.get("https://medium.com/new-story")
-    time.sleep(3)
+    time.sleep(5)
 
-    wait = WebDriverWait(driver, 15)
+    wait = WebDriverWait(driver, 30)
+    print(f"[Medium] 현재 URL: {driver.current_url}")
+
+    from selenium.webdriver.common.keys import Keys
 
     # 제목 입력
-    title_el = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "h3[data-testid='editor-title']")))
+    title_el = wait.until(EC.presence_of_element_located(
+        (By.CSS_SELECTOR, "h3[data-testid='editorTitleParagraph']")
+    ))
     title_el.click()
     title_el.send_keys(title)
     time.sleep(0.5)
 
-    # 본문 클릭 후 입력 (탭으로 이동)
-    from selenium.webdriver.common.keys import Keys
-    title_el.send_keys(Keys.TAB)
+    # 본문 입력
+    title_el.send_keys(Keys.RETURN)
     time.sleep(0.5)
 
-    body_el = driver.switch_to.active_element
-    # 마크다운 → 줄 단위로 입력
+    body_el = wait.until(EC.presence_of_element_located(
+        (By.CSS_SELECTOR, "p[data-testid='editorParagraphText']")
+    ))
+    body_el.click()
     for line in body.split("\n"):
         body_el.send_keys(line)
         body_el.send_keys(Keys.RETURN)
-        time.sleep(0.05)
+        time.sleep(0.03)
 
     time.sleep(1)
 
@@ -83,10 +95,7 @@ def publish_to_medium(state: dict) -> dict:
     keywords = state.get("keywords", [])
 
     options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    # 봇 감지 우회
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option("useAutomationExtension", False)
+    options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 
     driver = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
@@ -94,10 +103,8 @@ def publish_to_medium(state: dict) -> dict:
     )
 
     try:
-        driver.get("https://medium.com/m/signin")
-        _wait_for_login(driver)
+        print(f"[Medium] 현재 창: {driver.current_url}")
         url = _create_post(driver, title, draft, keywords)
         return {**state, "published_url": url}
     finally:
-        input("\n[Medium] 확인 후 엔터를 누르면 브라우저가 닫힙니다...")
-        driver.quit()
+        pass  # 창 닫지 않음 — 사용자가 직접 확인
