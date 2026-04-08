@@ -4,6 +4,10 @@ import pathlib
 
 
 def publish(state: dict) -> dict:
+    if state.get("publish_target") == "medium":
+        from branding.blog.agents.publish_medium import publish_to_medium
+        return publish_to_medium(state)
+
     out_dir = pathlib.Path(__file__).parent.parent / "output"
     out_dir.mkdir(exist_ok=True)
 
