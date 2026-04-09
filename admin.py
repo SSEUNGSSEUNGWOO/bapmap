@@ -396,7 +396,7 @@ Return JSON only:
   "subtitle": "1-2 sentences. Hook. Why these spots together.",
   "category_tag": "1-3 tags e.g. K-pop, Bakery, Celebrity",
   "intro": "2-3 sentences. Punchy. Why this guide exists.",
-  "body": "markdown. Each spot gets 2-3 sentences using memo info. End with a practical tip."
+  "body": "Use [spot:English Name] for each spot card, with 3-4 sentences of markdown text before each card. End with a practical tip paragraph. Example: Some intro text.\\n\\n[spot:Spot Name]\\n\\nNext spot context.\\n\\n[spot:Spot Name 2]"
 }}"""}]
                     )
                     text = res.content[0].text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
