@@ -33,11 +33,19 @@ def eval_agent(state: dict) -> dict:
     print(f"[Eval] 품질 평가 중... ({provider})")
 
     try:
-        raw = generate(PROMPT.format(title=draft.get("title", ""), draft=full_text), provider, max_tokens=600)
-        raw = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        raw = generate(PROMPT.format(title=draft.get("title", ""), draft=full_text), provider, max_tokens=800)
+        raw = raw.strip()
+        if "```" in raw:
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        raw = raw.strip()
+        start, end = raw.find("{"), raw.rfind("}") + 1
+        if start != -1 and end > start:
+            raw = raw[start:end]
         data = json.loads(raw)
-    except Exception:
-        print("[Eval] 파싱 실패, 기본 통과")
+    except Exception as e:
+        print(f"[Eval] 파싱 실패 ({e}), 기본 통과")
         return {**state, "approved": True, "eval_score": 0, "eval_feedback": ""}
 
     score = data.get("total", 0)
