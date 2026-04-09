@@ -48,6 +48,7 @@ Return a JSON array of {count} clusters:
 [
   {{
     "theme": "short theme name",
+    "title": "SEO-friendly guide title, under 70 chars",
     "reason": "1 sentence why these spots work together",
     "spots": ["English Name 1", "English Name 2", "English Name 3", "English Name 4"]
   }}

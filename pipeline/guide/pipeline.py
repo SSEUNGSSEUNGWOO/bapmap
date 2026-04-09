@@ -63,6 +63,7 @@ if __name__ == "__main__":
     print("\n추천 클러스터:")
     for i, c in enumerate(clusters):
         print(f"\n{i+1}. [{c['theme']}]")
+        print(f"   제목: {c.get('title', '')}")
         print(f"   스팟: {', '.join(c['spots'])}")
         print(f"   이유: {c['reason']}")
 
@@ -72,12 +73,13 @@ if __name__ == "__main__":
     if choice == "0":
         spot_input = input("스팟 english_name (쉼표로 구분): ")
         spot_names = [s.strip() for s in spot_input.split(",") if s.strip()]
+        title = input("제목: ").strip()
     else:
         selected = clusters[int(choice) - 1]
         spot_names = selected["spots"]
-        print(f"\n선택: {selected['theme']}")
+        title = selected.get("title", selected["theme"])
+        print(f"\n선택: {title}")
 
-    title = input("제목: ").strip()
     cover = input("커버 이미지 URL (없으면 엔터): ").strip()
     status = input("상태 [draft/published] (기본 draft): ").strip() or "draft"
 
