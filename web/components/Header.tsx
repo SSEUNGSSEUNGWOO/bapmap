@@ -25,8 +25,8 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const { lang, setLang } = useLang();
-  const NAV = lang === "ja" ? NAV_JA : NAV_EN;
+  const { lang, setLang, p } = useLang();
+  const NAV = (lang === "ja" ? NAV_JA : NAV_EN).map((n) => ({ ...n, href: p(n.href) }));
   const searchLabel = lang === "ja" ? "検索 ✦" : "Search ✦";
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function Header() {
     >
       <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center no-underline">
+        <Link href={p("/")} className="flex items-center no-underline">
           <Image
             src="/logo.svg"
             alt="Bapmap"
@@ -118,7 +118,7 @@ export default function Header() {
             ))}
           </div>
           <Link
-            href="/search"
+            href={p("/search")}
             className="ml-3 no-underline px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-all duration-200 hover:opacity-80"
             style={{ background: "var(--orange)", color: "#fff", boxShadow: "0 2px 12px rgba(245,166,35,0.35)" }}
           >
@@ -129,7 +129,7 @@ export default function Header() {
         {/* Mobile: Search + Hamburger */}
         <div className="flex md:hidden items-center gap-2">
           <Link
-            href="/search"
+            href={p("/search")}
             className="no-underline w-9 h-9 rounded-full flex items-center justify-center"
             style={{ background: "var(--orange)" }}
           >

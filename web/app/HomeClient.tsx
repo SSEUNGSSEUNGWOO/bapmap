@@ -88,7 +88,7 @@ export default function HomeClient({
   guides: Guide[];
   spotCount: number;
 }) {
-  const { lang } = useLang();
+  const { lang, p } = useLang();
   const t = T[lang];
   const isJa = lang === "ja";
 
@@ -124,9 +124,9 @@ export default function HomeClient({
       <div className="relative z-10 px-6" style={{ marginTop: "-110px" }}>
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { ...t.cards[0], href: "/spots", img: "/card-spots.jpg", badgeVal: typeof t.cards[0].badge === "function" ? t.cards[0].badge(spotCount) : t.cards[0].badge },
-            { ...t.cards[1], href: "/map", img: "/card-location.jpg", badgeVal: t.cards[1].badge as string },
-            { ...t.cards[2], href: "/about", img: "/card-about.jpg", badgeVal: t.cards[2].badge as string },
+            { ...t.cards[0], href: p("/spots"), img: "/card-spots.jpg", badgeVal: typeof t.cards[0].badge === "function" ? t.cards[0].badge(spotCount) : t.cards[0].badge },
+            { ...t.cards[1], href: p("/map"), img: "/card-location.jpg", badgeVal: t.cards[1].badge as string },
+            { ...t.cards[2], href: p("/about"), img: "/card-about.jpg", badgeVal: t.cards[2].badge as string },
           ].map((card) => (
             <Link key={card.href} href={card.href} className="group block no-underline relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5" style={{ height: "220px", boxShadow: "0 16px 48px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.1)" }}>
               <img src={card.img} alt={card.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
@@ -201,11 +201,11 @@ export default function HomeClient({
               <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3" style={{ color: "var(--orange)" }}>{t.guidesEyebrow}</p>
               <h2 className="font-display m-0" style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}>{t.guidesTitle}</h2>
             </div>
-            <Link href="/guides" className="text-sm font-bold no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--orange)" }}>{t.allGuides}</Link>
+            <Link href={p("/guides")} className="text-sm font-bold no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--orange)" }}>{t.allGuides}</Link>
           </div>
           <div className="flex flex-col gap-5">
             {guides[0] && (
-              <Link href={`/guides/${guides[0].slug}`} className="group block no-underline">
+              <Link href={p(`/guides/${guides[0].slug}`)} className="group block no-underline">
                 <article className="rounded-2xl overflow-hidden border border-[var(--border)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl" style={{ background: "var(--surface)" }}>
                   <div className="relative overflow-hidden" style={{ height: "380px" }}>
                     {guides[0].cover_image ? <img src={guides[0].cover_image} alt={guides[0].title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" /> : <div className="w-full h-full" style={{ background: "var(--ink)" }} />}
@@ -222,7 +222,7 @@ export default function HomeClient({
             {guides.length > 1 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {guides.slice(1).map((guide) => (
-                  <Link key={guide.id} href={`/guides/${guide.slug}`} className="group block no-underline">
+                  <Link key={guide.id} href={p(`/guides/${guide.slug}`)} className="group block no-underline">
                     <article className="rounded-2xl overflow-hidden border border-[var(--border)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl" style={{ background: "var(--surface)" }}>
                       <div className="relative overflow-hidden" style={{ height: "220px" }}>
                         {guide.cover_image ? <img src={guide.cover_image} alt={guide.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" /> : <div className="w-full h-full" style={{ background: "var(--ink)" }} />}
@@ -250,7 +250,7 @@ export default function HomeClient({
               <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-3" style={{ color: "var(--orange)" }}>{t.spotsEyebrow}</p>
               <h2 className="font-display m-0" style={{ fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--ink)", letterSpacing: "-0.02em" }}>{t.spotsTitle}</h2>
             </div>
-            <Link href="/spots" className="text-sm font-bold no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--orange)" }}>{t.allSpots}</Link>
+            <Link href={p("/spots")} className="text-sm font-bold no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--orange)" }}>{t.allSpots}</Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {recent.map((spot) => <SpotCard key={spot.id} spot={spot} />)}
@@ -265,7 +265,7 @@ export default function HomeClient({
         <div className="relative z-10">
           <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-4" style={{ color: "var(--orange)" }}>{t.ctaEyebrow}</p>
           <h2 className="font-display mb-6 text-white" style={{ fontSize: "clamp(2rem,5vw,3rem)", letterSpacing: "-0.02em" }}>{t.ctaTitle}</h2>
-          <Link href="/spots" className="inline-flex items-center gap-2 no-underline font-semibold text-sm px-8 py-3.5 rounded-full text-white transition-all duration-200 hover:opacity-85" style={{ background: "var(--orange)", boxShadow: "0 4px 24px rgba(245,166,35,0.4)" }}>
+          <Link href={p("/spots")} className="inline-flex items-center gap-2 no-underline font-semibold text-sm px-8 py-3.5 rounded-full text-white transition-all duration-200 hover:opacity-85" style={{ background: "var(--orange)", boxShadow: "0 4px 24px rgba(245,166,35,0.4)" }}>
             {t.ctaBtn}
           </Link>
         </div>

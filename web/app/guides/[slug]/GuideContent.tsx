@@ -49,6 +49,7 @@ type Segment =
   | { type: "spot"; name: string };
 
 function SpotFeature({ spot, index, viewLabel, isJa }: { spot: Spot; index: number; viewLabel: string; isJa: boolean }) {
+  const { p } = useLang();
   const slug = (spot.english_name || spot.name)
     .toLowerCase()
     .replace(/\s+/g, "-")
@@ -84,7 +85,7 @@ function SpotFeature({ spot, index, viewLabel, isJa }: { spot: Spot; index: numb
             )}
           </div>
           <Link
-            href={`/spots/${slug}`}
+            href={p(`/spots/${slug}`)}
             className="shrink-0 text-xs font-bold no-underline px-4 py-2 rounded-full transition-opacity hover:opacity-70"
             style={{ background: "var(--orange)", color: "#fff", marginTop: "4px" }}
           >
@@ -141,7 +142,7 @@ type Props = {
 };
 
 export default function GuideContent({ guide: g, spots, segments, segmentsJa, spotMap, hasInlineSpots }: Props) {
-  const { lang } = useLang();
+  const { lang, p } = useLang();
   const t = T[lang];
   const isJa = lang === "ja";
 
@@ -167,7 +168,7 @@ export default function GuideContent({ guide: g, spots, segments, segmentsJa, sp
         />
         <div className="absolute bottom-0 left-0 right-0 px-8 pb-12 max-w-4xl mx-auto">
           <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-4" style={{ color: "var(--orange)" }}>
-            <Link href="/guides" style={{ color: "var(--orange)", textDecoration: "none" }}>{t.guidesLink}</Link>
+            <Link href={p("/guides")} style={{ color: "var(--orange)", textDecoration: "none" }}>{t.guidesLink}</Link>
             {g.category_tag && <> / {g.category_tag}</>}
           </p>
           <h1
@@ -225,7 +226,7 @@ export default function GuideContent({ guide: g, spots, segments, segmentsJa, sp
                 .replace(/\s+/g, "-")
                 .replace(/[^\w-]/g, "");
               return (
-                <Link key={spot.id} href={`/spots/${slug2}`} className="group block no-underline h-full">
+                <Link key={spot.id} href={p(`/spots/${slug2}`)} className="group block no-underline h-full">
                   <div className="bg-white rounded-2xl overflow-hidden border border-[var(--border)] group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-200 h-full flex flex-col">
                     {spot.image_url && (
                       <div className="h-48 overflow-hidden">
@@ -244,7 +245,7 @@ export default function GuideContent({ guide: g, spots, segments, segmentsJa, sp
         )}
 
         <div className="mt-14 pt-8 border-t border-[var(--border)]">
-          <Link href="/guides" className="text-sm font-bold no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--orange)" }}>
+          <Link href={p("/guides")} className="text-sm font-bold no-underline hover:opacity-60 transition-opacity" style={{ color: "var(--orange)" }}>
             {t.backLink}
           </Link>
         </div>

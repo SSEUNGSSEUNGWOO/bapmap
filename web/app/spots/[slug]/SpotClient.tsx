@@ -139,7 +139,7 @@ type Props = {
 };
 
 export default function SpotClient({ spot, nearby, images }: Props) {
-  const { lang } = useLang();
+  const { lang, p } = useLang();
   const t = T[lang];
   const isJa = lang === "ja";
 
@@ -164,7 +164,7 @@ export default function SpotClient({ spot, nearby, images }: Props) {
 
         {/* 브레드크럼 */}
         <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--muted)" }}>
-          <Link href="/spots" className="no-underline hover:opacity-70" style={{ color: "var(--muted)" }}>{t.breadcrumb}</Link>
+          <Link href={p("/spots")} className="no-underline hover:opacity-70" style={{ color: "var(--muted)" }}>{t.breadcrumb}</Link>
           <span>›</span>
           <span style={{ color: "var(--orange)" }}>{isJa ? (REGION_JA[spot.region || spot.city] || spot.region || spot.city) : (spot.region || spot.city)}</span>
         </div>
@@ -330,7 +330,7 @@ export default function SpotClient({ spot, nearby, images }: Props) {
             {nearby.map((s) => {
               const nearbySlug = (s.english_name || s.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
               return (
-                <Link key={s.id} href={`/spots/${nearbySlug}`} className="group block no-underline">
+                <Link key={s.id} href={p(`/spots/${nearbySlug}`)} className="group block no-underline">
                   <div className="rounded-xl overflow-hidden border border-[var(--border)] group-hover:shadow-lg group-hover:-translate-y-0.5 transition-all duration-200">
                     {s.image_url ? (
                       <img src={s.image_url} alt={s.english_name || s.name} className="w-full object-cover" style={{ height: "100px" }} />

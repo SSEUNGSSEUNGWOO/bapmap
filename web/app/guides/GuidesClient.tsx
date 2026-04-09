@@ -32,7 +32,7 @@ type Guide = {
 };
 
 export default function GuidesClient({ guides }: { guides: Guide[] }) {
-  const { lang } = useLang();
+  const { lang, p } = useLang();
   const t = T[lang];
   const isJa = lang === "ja";
 
@@ -58,7 +58,7 @@ export default function GuidesClient({ guides }: { guides: Guide[] }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {guides.map((guide) => (
-            <Link key={guide.id} href={`/guides/${guide.slug}`} className="group block no-underline">
+            <Link key={guide.id} href={p(`/guides/${guide.slug}`)} className="group block no-underline">
               <article
                 className="rounded-2xl overflow-hidden border border-[var(--border)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl"
                 style={{ background: "var(--surface)" }}
