@@ -406,7 +406,11 @@ Return JSON only:
                     import sys as _sys
                     _sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
                     from branding.blog.agents.eval import eval_agent
-                    full_draft = (data.get("intro", "") + "\n\n" + data.get("body", "")).strip()
+                    full_draft = "\n\n".join(filter(None, [
+                        data.get("subtitle", ""),
+                        data.get("intro", ""),
+                        data.get("body", ""),
+                    ])).strip()
                     eval_state = eval_agent({"title": data.get("title", ""), "draft": full_draft, "provider": "anthropic"})
                     eval_data = {"approved": eval_state.get("approved", True), "total": eval_state.get("eval_score", 0), "feedback": eval_state.get("eval_feedback", "")}
 
