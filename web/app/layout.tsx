@@ -18,6 +18,13 @@ export const metadata: Metadata = {
   title: "Bapmap — Eat where Koreans actually eat",
   description: "Local Korean restaurant guide for travelers. Real spots, honest picks. No tourist traps.",
   metadataBase: new URL("https://bapmap.com"),
+  alternates: {
+    canonical: "https://bapmap.com",
+    languages: {
+      "en": "https://bapmap.com",
+      "ja": "https://bapmap.com/ja",
+    },
+  },
   openGraph: {
     title: "Bapmap — Eat where Koreans actually eat",
     description: "Local Korean restaurant guide for travelers. Real spots, honest picks. No tourist traps.",
