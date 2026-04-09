@@ -366,41 +366,58 @@ with tab3:
             height=150,
             help="예:\nPark Makrye Cheongjin-dong Haejangguk\nDaesung Jib"
         )
+        g_title_input = st.text_input("제목 (AI가 이 제목 기준으로 작성)", key="g_title_input", placeholder="예: K-pop Idols' Favorite Seoul Bakeries")
 
         if st.button("✨ AI로 전체 채우기", key="ai_guide", type="primary"):
             spot_slugs = [s.strip() for s in g_spots.strip().splitlines() if s.strip()]
             if not spot_slugs:
                 st.error("스팟 목록을 먼저 입력해주세요")
+            elif not g_title_input.strip():
+                st.error("제목을 먼저 입력해주세요")
             else:
                 with st.spinner("AI 생성 중..."):
-                    from anthropic import Anthropic
+                    from anthropic import Anthropic, APIStatusError
                     import json as _json
+                    import time as _time
                     _client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+                    def _call_with_retry(fn, retries=3, wait=10):
+                        for i in range(retries):
+                            try:
+                                return fn()
+                            except APIStatusError as e:
+                                if e.status_code == 529 and i < retries - 1:
+                                    _time.sleep(wait)
+                                else:
+                                    raise
                     spots = sb.table("spots").select("english_name, name, category, region, memo, what_to_order, tagline").in_("english_name", spot_slugs).execute().data
                     spots_info = "\n\n".join(
                         f"- {s.get('english_name') or s['name']} ({s.get('category','')}, {s.get('region','')})\n  memo: {s.get('memo','')}"
                         for s in spots
                     )
-                    res = _client.messages.create(
+                    user_title = g_title_input.strip()
+                    res = _call_with_retry(lambda: _client.messages.create(
                         model="claude-sonnet-4-6",
                         max_tokens=2000,
-                        messages=[{"role": "user", "content": f"""Create a complete Bapmap guide from these spots.
+                        messages=[{"role": "user", "content": f"""Create a complete Bapmap guide from these spots. The title is already set — write everything to match it.
+
+Title: {user_title}
 
 Spots:
 {spots_info}
 
 Return JSON only:
 {{
-  "title": "SEO-friendly English title, under 70 chars",
-  "slug": "url-friendly-slug",
+  "slug": "url-friendly-slug derived from title",
   "subtitle": "1-2 sentences. Hook. Why these spots together.",
   "category_tag": "1-3 tags e.g. K-pop, Bakery, Celebrity",
   "intro": "2-3 sentences. Punchy. Why this guide exists.",
   "body": "Use [spot:English Name] for each spot card, with 3-4 sentences of markdown text before each card. End with a practical tip paragraph. Example: Some intro text.\\n\\n[spot:Spot Name]\\n\\nNext spot context.\\n\\n[spot:Spot Name 2]"
 }}"""}]
-                    )
+                    ))
                     text = res.content[0].text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
                     data = _json.loads(text)
+                    data["title"] = user_title
 
                     # Eval (eval.py 재사용)
                     import sys as _sys
@@ -418,7 +435,7 @@ Return JSON only:
 
                     if not eval_data.get("approved"):
                         feedback = eval_data.get("feedback", "")
-                        revise_res = _client.messages.create(
+                        revise_res = _call_with_retry(lambda: _client.messages.create(
                             model="claude-sonnet-4-6",
                             max_tokens=2000,
                             messages=[{"role": "user", "content": f"""Revise the body of this Bapmap guide based on the feedback below.
@@ -430,7 +447,7 @@ Current body:
 {data['body']}
 
 Return only the revised body text, no JSON."""}]
-                        )
+                        ))
                         data["body"] = revise_res.content[0].text.strip()
 
                 for k, v in data.items():
