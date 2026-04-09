@@ -406,7 +406,8 @@ Return JSON only:
                     import sys as _sys
                     _sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
                     from branding.blog.agents.eval import eval_agent
-                    eval_state = eval_agent({"title": data.get("title", ""), "draft": data.get("body", ""), "provider": "anthropic"})
+                    full_draft = (data.get("intro", "") + "\n\n" + data.get("body", "")).strip()
+                    eval_state = eval_agent({"title": data.get("title", ""), "draft": full_draft, "provider": "anthropic"})
                     eval_data = {"approved": eval_state.get("approved", True), "total": eval_state.get("eval_score", 0), "feedback": eval_state.get("eval_feedback", "")}
 
                     st.write(f"📊 평가 점수: {eval_data.get('total', 0)}/50 — {'✅ 통과' if eval_data.get('approved') else '❌ 재작성'}")
