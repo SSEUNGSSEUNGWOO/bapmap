@@ -376,33 +376,14 @@ with tab3:
                 st.error("제목을 먼저 입력해주세요")
             else:
                 with st.spinner("AI 생성 중..."):
-                    from anthropic import Anthropic, APIStatusError, InternalServerError
                     import json as _json
-                    import time as _time
-                    _client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-
-                    def _call_with_retry(fn, retries=4, wait=20):
-                        last_exc = None
-                        for i in range(retries):
-                            try:
-                                return fn()
-                            except (APIStatusError, InternalServerError) as e:
-                                last_exc = e
-                                if i < retries - 1:
-                                    _time.sleep(wait)
-                            except Exception:
-                                raise
-                        raise last_exc
                     spots = sb.table("spots").select("english_name, name, category, region, memo, what_to_order, tagline").in_("english_name", spot_slugs).execute().data
                     spots_info = "\n\n".join(
                         f"- {s.get('english_name') or s['name']} ({s.get('category','')}, {s.get('region','')})\n  memo: {s.get('memo','')}"
                         for s in spots
                     )
                     user_title = g_title_input.strip()
-                    res = _call_with_retry(lambda: _client.messages.create(
-                        model="claude-sonnet-4-6",
-                        max_tokens=2000,
-                        messages=[{"role": "user", "content": f"""Create a complete Bapmap guide from these spots. The title is already set — write everything to match it.
+                    prompt = f"""Create a complete Bapmap guide from these spots. The title is already set — write everything to match it.
 
 Title: {user_title}
 
@@ -416,9 +397,20 @@ Return JSON only:
   "category_tag": "1-3 tags e.g. K-pop, Bakery, Celebrity",
   "intro": "2-3 sentences. Punchy. Why this guide exists.",
   "body": "Use [spot:English Name] for each spot card, with 3-4 sentences of markdown text before each card. End with a practical tip paragraph. Example: Some intro text.\\n\\n[spot:Spot Name]\\n\\nNext spot context.\\n\\n[spot:Spot Name 2]"
-}}"""}]
-                    ))
-                    text = res.content[0].text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+}}"""
+
+                    try:
+                        from anthropic import Anthropic
+                        _aclient = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                        res = _aclient.messages.create(model="claude-sonnet-4-6", max_tokens=2000, messages=[{"role": "user", "content": prompt}])
+                        text = res.content[0].text.strip()
+                    except Exception:
+                        from openai import OpenAI
+                        _oclient = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                        res = _oclient.chat.completions.create(model="gpt-4o", max_tokens=2000, messages=[{"role": "user", "content": prompt}])
+                        text = res.choices[0].message.content.strip()
+
+                    text = text.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
                     data = _json.loads(text)
                     data["title"] = user_title
 
@@ -441,10 +433,7 @@ Return JSON only:
 
                     if not eval_data.get("approved"):
                         feedback = eval_data.get("feedback", "")
-                        revise_res = _call_with_retry(lambda: _client.messages.create(
-                            model="claude-sonnet-4-6",
-                            max_tokens=2000,
-                            messages=[{"role": "user", "content": f"""Revise the body of this Bapmap guide based on the feedback below.
+                        revise_prompt = f"""Revise the body of this Bapmap guide based on the feedback below.
 Keep [spot:Name] tags in place. Keep 3-4 sentences before each spot card.
 
 Feedback: {feedback}
@@ -452,9 +441,17 @@ Feedback: {feedback}
 Current body:
 {data['body']}
 
-Return only the revised body text, no JSON."""}]
-                        ))
-                        data["body"] = revise_res.content[0].text.strip()
+Return only the revised body text, no JSON."""
+                        try:
+                            from anthropic import Anthropic
+                            _aclient2 = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                            rr = _aclient2.messages.create(model="claude-sonnet-4-6", max_tokens=2000, messages=[{"role": "user", "content": revise_prompt}])
+                            data["body"] = rr.content[0].text.strip()
+                        except Exception:
+                            from openai import OpenAI
+                            _oclient2 = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                            rr = _oclient2.chat.completions.create(model="gpt-4o", max_tokens=2000, messages=[{"role": "user", "content": revise_prompt}])
+                            data["body"] = rr.choices[0].message.content.strip()
 
                 for k, v in data.items():
                     st.session_state[f"g_{k}"] = v
