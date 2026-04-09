@@ -5,6 +5,24 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useLang } from "@/lib/LanguageContext";
 
+const REGION_JA: Record<string, string> = {
+  "Dongdaemun District": "東大門区", "Dongdaemun-gu": "東大門区",
+  "Dongjak District": "銅雀区", "Dongjak-gu": "銅雀区",
+  "Gangnam District": "江南区", "Gangnam-gu": "江南区",
+  "Guro District": "九老区", "Guro-gu": "九老区",
+  "Gwanak District": "冠岳区", "Gwanak-gu": "冠岳区",
+  "Gwangjin District": "広津区", "Gwangjin-gu": "広津区",
+  "Jongno District": "鍾路区", "Jongno-gu": "鍾路区",
+  "Jung District": "中区", "Jung-gu": "中区",
+  "Mapo District": "麻浦区", "Mapo-gu": "麻浦区",
+  "Seocho District": "瑞草区", "Seocho-gu": "瑞草区",
+  "Seodaemun District": "西大門区", "Seodaemun-gu": "西大門区",
+  "Seongdong District": "城東区", "Seongdong-gu": "城東区",
+  "Songpa District": "松坡区", "Songpa-gu": "松坡区",
+  "Yeongdeungpo": "永登浦", "Yeongdeungpo District": "永登浦区", "Yeongdeungpo-gu": "永登浦区",
+  "Yongsan District": "龍山区", "Yongsan-gu": "龍山区",
+};
+
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
 type Spot = {
@@ -21,7 +39,9 @@ type Spot = {
 };
 
 export default function MapClient({ spots }: { spots: Spot[] }) {
-  const { p } = useLang();
+  const { lang, p } = useLang();
+  const langRef = useRef(lang);
+  useEffect(() => { langRef.current = lang; }, [lang]);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const popup = useRef<mapboxgl.Popup | null>(null);
@@ -50,6 +70,7 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
             name: s.english_name || s.name,
             category: s.category || "",
             region: s.region || s.city,
+            region_ja: REGION_JA[s.region || s.city] || s.region || s.city,
             rating: s.rating,
             image_url: s.image_url || "",
             slug: (s.english_name || s.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, ""),
@@ -128,12 +149,15 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
         if (!props) return;
         const coords = (e.features![0].geometry as GeoJSON.Point).coordinates as [number, number];
         popup.current?.remove();
+        const isJa = langRef.current === "ja";
+        const regionLabel = isJa ? props.region_ja : props.region;
         popup.current = new mapboxgl.Popup({ offset: 12, maxWidth: "220px", closeButton: false, closeOnClick: false })
           .setLngLat(coords)
           .setHTML(`
             <div style="font-family:inherit;overflow:hidden;border-radius:10px;">
               ${props.image_url ? `<img src="${props.image_url}" style="width:100%;height:110px;object-fit:cover;display:block;" />` : ""}
               <div style="padding:8px 10px;">
+                <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#F5A623;margin-bottom:3px;">${regionLabel}</div>
                 <div style="font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">${props.name}</div>
                 <div style="font-size:11px;color:#888;">★ ${props.rating} · ${props.category}</div>
               </div>
