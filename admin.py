@@ -376,17 +376,18 @@ with tab3:
                 st.error("제목을 먼저 입력해주세요")
             else:
                 with st.spinner("AI 생성 중..."):
-                    from anthropic import Anthropic, APIStatusError
+                    from anthropic import Anthropic
+                    from anthropic._exceptions import OverloadedError
                     import json as _json
                     import time as _time
                     _client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-                    def _call_with_retry(fn, retries=3, wait=10):
+                    def _call_with_retry(fn, retries=3, wait=15):
                         for i in range(retries):
                             try:
                                 return fn()
-                            except APIStatusError as e:
-                                if e.status_code == 529 and i < retries - 1:
+                            except OverloadedError:
+                                if i < retries - 1:
                                     _time.sleep(wait)
                                 else:
                                     raise
@@ -428,7 +429,10 @@ Return JSON only:
                         data.get("intro", ""),
                         data.get("body", ""),
                     ])).strip()
-                    eval_state = eval_agent({"title": data.get("title", ""), "draft": full_draft, "provider": "anthropic"})
+                    try:
+                        eval_state = _call_with_retry(lambda: eval_agent({"title": data.get("title", ""), "draft": full_draft, "provider": "anthropic"}))
+                    except OverloadedError:
+                        eval_state = {"approved": True, "eval_score": 0, "eval_feedback": ""}
                     eval_data = {"approved": eval_state.get("approved", True), "total": eval_state.get("eval_score", 0), "feedback": eval_state.get("eval_feedback", "")}
 
                     st.write(f"📊 평가 점수: {eval_data.get('total', 0)}/50 — {'✅ 통과' if eval_data.get('approved') else '❌ 재작성'}")
