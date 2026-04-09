@@ -405,10 +405,10 @@ Return JSON only:
                     st.session_state[f"g_{k}"] = v
                 st.rerun()
 
+        g_cover = st.text_input("커버 이미지 URL", key="g_cover", help="Unsplash, Pexels")
         g_title = st.text_input("제목", key="g_title", value=st.session_state.get("g_title", ""))
         g_slug = st.text_input("Slug (URL)", key="g_slug", value=st.session_state.get("g_slug", ""), help="예: late-night-seoul")
         g_subtitle = st.text_area("부제 (카드에 표시)", key="g_subtitle", value=st.session_state.get("g_subtitle", ""), height=80)
-        g_cover = st.text_input("커버 이미지 URL", key="g_cover")
         g_tag = st.text_input("카테고리 태그", key="g_tag", value=st.session_state.get("g_tag", ""), help="예: Late Night, Budget, Solo")
         g_intro = st.text_area("인트로 문장 (이탤릭으로 표시)", key="g_intro", value=st.session_state.get("g_intro", ""), height=100)
         g_body = st.text_area("본문 (마크다운)", key="g_body", value=st.session_state.get("g_body", ""), height=300)
