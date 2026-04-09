@@ -376,7 +376,7 @@ with tab3:
                 st.error("제목을 먼저 입력해주세요")
             else:
                 with st.spinner("AI 생성 중..."):
-                    from anthropic import Anthropic
+                    from anthropic import Anthropic, APIStatusError, InternalServerError
                     import json as _json
                     import time as _time
                     _client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
@@ -386,12 +386,12 @@ with tab3:
                         for i in range(retries):
                             try:
                                 return fn()
-                            except Exception as e:
-                                if "overloaded" in str(e).lower() or "529" in str(e):
-                                    last_exc = e
+                            except (APIStatusError, InternalServerError) as e:
+                                last_exc = e
+                                if i < retries - 1:
                                     _time.sleep(wait)
-                                else:
-                                    raise
+                            except Exception:
+                                raise
                         raise last_exc
                     spots = sb.table("spots").select("english_name, name, category, region, memo, what_to_order, tagline").in_("english_name", spot_slugs).execute().data
                     spots_info = "\n\n".join(
