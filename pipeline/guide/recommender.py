@@ -17,6 +17,12 @@ def recommender(state: dict) -> dict:
         "id, english_name, name, category, region, city, memo, tagline"
     ).eq("status", "업로드완료").execute().data
 
+    # 이미 가이드에 사용된 스팟 제외
+    guides = sb.table("guides").select("spot_slugs").execute().data
+    used = {name for g in guides for name in (g.get("spot_slugs") or [])}
+    spots = [s for s in spots if (s.get("english_name") or s["name"]) not in used]
+    print(f"[Recommender] 미사용 스팟 {len(spots)}개로 추천")
+
     spots_summary = "\n".join(
         f"- {s.get('english_name') or s['name']} | {s.get('category','')} | {s.get('region') or s.get('city','')} | {(s.get('memo') or '')[:120]}"
         for s in spots
@@ -51,7 +57,17 @@ Return JSON only."""
 
     print(f"[Recommender] 클러스터 추천 중... ({provider})")
     raw = generate(prompt, provider, max_tokens=2000)
-    raw = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+    raw = raw.strip()
+    if "```" in raw:
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    raw = raw.strip()
+    # JSON 배열만 추출
+    start = raw.find("[")
+    end = raw.rfind("]") + 1
+    if start != -1 and end > start:
+        raw = raw[start:end]
     clusters = json.loads(raw)
     print(f"[Recommender] {len(clusters)}개 클러스터 추천됨")
     for c in clusters:
