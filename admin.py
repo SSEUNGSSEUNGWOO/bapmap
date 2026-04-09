@@ -358,11 +358,31 @@ with tab3:
     guides_res = sb.table("guides").select("*").order("created_at", desc=True).execute()
     guides_data = guides_res.data or []
 
+    # 클러스터 추천
+    with st.expander("🔍 가이드 클러스터 추천", expanded=False):
+        if st.button("DB 스팟으로 추천 받기", key="recommend_clusters"):
+            with st.spinner("스팟 분석 중..."):
+                from pipeline.guide.pipeline import recommend
+                clusters = recommend(provider="anthropic")
+                st.session_state["guide_clusters"] = clusters
+                st.rerun()
+
+        if st.session_state.get("guide_clusters"):
+            for i, c in enumerate(st.session_state["guide_clusters"]):
+                with st.container():
+                    cols = st.columns([3, 1])
+                    cols[0].markdown(f"**{c['theme']}**  \n{c['reason']}  \n`{', '.join(c['spots'])}`")
+                    if cols[1].button("이걸로 작성", key=f"use_cluster_{i}"):
+                        st.session_state["g_spots_prefill"] = "\n".join(c["spots"])
+                        st.rerun()
+
     # 새 가이드 작성
     with st.expander("➕ 새 가이드 작성", expanded=len(guides_data) == 0):
+        prefill = st.session_state.pop("g_spots_prefill", None)
         g_spots = st.text_area(
             "스팟 english_name 목록 (한 줄에 하나)",
             key="g_spots",
+            value=prefill or "",
             height=150,
             help="예:\nPark Makrye Cheongjin-dong Haejangguk\nDaesung Jib"
         )
@@ -376,83 +396,16 @@ with tab3:
                 st.error("제목을 먼저 입력해주세요")
             else:
                 with st.spinner("AI 생성 중..."):
-                    import json as _json
-                    spots = sb.table("spots").select("english_name, name, category, region, memo, what_to_order, tagline").in_("english_name", spot_slugs).execute().data
-                    spots_info = "\n\n".join(
-                        f"- {s.get('english_name') or s['name']} ({s.get('category','')}, {s.get('region','')})\n  memo: {s.get('memo','')}"
-                        for s in spots
+                    from pipeline.guide.pipeline import run as guide_run
+                    state = guide_run(
+                        title=g_title_input.strip(),
+                        spot_names=spot_slugs,
+                        provider="anthropic",
                     )
-                    user_title = g_title_input.strip()
-                    prompt = f"""Create a complete Bapmap guide from these spots. The title is already set — write everything to match it.
-
-Title: {user_title}
-
-Spots:
-{spots_info}
-
-Return JSON only:
-{{
-  "slug": "url-friendly-slug derived from title",
-  "subtitle": "1-2 sentences. Hook. Why these spots together.",
-  "category_tag": "1-3 tags e.g. K-pop, Bakery, Celebrity",
-  "intro": "2-3 sentences. Punchy. Why this guide exists.",
-  "body": "Use [spot:English Name] for each spot card, with 3-4 sentences of markdown text before each card. End with a practical tip paragraph. Example: Some intro text.\\n\\n[spot:Spot Name]\\n\\nNext spot context.\\n\\n[spot:Spot Name 2]"
-}}"""
-
-                    try:
-                        from anthropic import Anthropic
-                        _aclient = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-                        res = _aclient.messages.create(model="claude-sonnet-4-6", max_tokens=2000, messages=[{"role": "user", "content": prompt}])
-                        text = res.content[0].text.strip()
-                    except Exception:
-                        from openai import OpenAI
-                        _oclient = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-                        res = _oclient.chat.completions.create(model="gpt-4o", max_tokens=2000, messages=[{"role": "user", "content": prompt}])
-                        text = res.choices[0].message.content.strip()
-
-                    text = text.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-                    data = _json.loads(text)
-                    data["title"] = user_title
-
-                    # Eval (eval.py 재사용)
-                    import sys as _sys
-                    _sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
-                    from branding.blog.agents.eval import eval_agent
-                    full_draft = "\n\n".join(filter(None, [
-                        data.get("subtitle", ""),
-                        data.get("intro", ""),
-                        data.get("body", ""),
-                    ])).strip()
-                    try:
-                        eval_state = _call_with_retry(lambda: eval_agent({"title": data.get("title", ""), "draft": full_draft, "provider": "anthropic"}))
-                    except Exception:
-                        eval_state = {"approved": True, "eval_score": 0, "eval_feedback": ""}
-                    eval_data = {"approved": eval_state.get("approved", True), "total": eval_state.get("eval_score", 0), "feedback": eval_state.get("eval_feedback", "")}
-
-                    st.write(f"📊 평가 점수: {eval_data.get('total', 0)}/50 — {'✅ 통과' if eval_data.get('approved') else '❌ 재작성'}")
-
-                    if not eval_data.get("approved"):
-                        feedback = eval_data.get("feedback", "")
-                        revise_prompt = f"""Revise the body of this Bapmap guide based on the feedback below.
-Keep [spot:Name] tags in place. Keep 3-4 sentences before each spot card.
-
-Feedback: {feedback}
-
-Current body:
-{data['body']}
-
-Return only the revised body text, no JSON."""
-                        try:
-                            from anthropic import Anthropic
-                            _aclient2 = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-                            rr = _aclient2.messages.create(model="claude-sonnet-4-6", max_tokens=2000, messages=[{"role": "user", "content": revise_prompt}])
-                            data["body"] = rr.content[0].text.strip()
-                        except Exception:
-                            from openai import OpenAI
-                            _oclient2 = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-                            rr = _oclient2.chat.completions.create(model="gpt-4o", max_tokens=2000, messages=[{"role": "user", "content": revise_prompt}])
-                            data["body"] = rr.choices[0].message.content.strip()
-
+                    data = state["guide_draft"]
+                    score = state.get("eval_score", 0)
+                    approved = state.get("approved", True)
+                    st.write(f"📊 평가 점수: {score}/50 — {'✅ 통과' if approved else '⚠️ 최대 재작성 후 사용'}")
                 for k, v in data.items():
                     st.session_state[f"g_{k}"] = v
                 st.rerun()
