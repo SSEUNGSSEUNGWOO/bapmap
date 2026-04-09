@@ -31,15 +31,20 @@ PRICE_MAP = {
 CATEGORY_MAP = {
     "korean_restaurant": "Korean",
     "korean_barbecue_restaurant": "Korean BBQ",
+    "barbecue_restaurant": "Korean BBQ",
+    "steak_house": "Korean BBQ",
     "japanese_restaurant": "Japanese",
     "ramen_restaurant": "Noodles",
+    "noodle_restaurant": "Noodles",
     "sushi_restaurant": "Japanese",
+    "izakaya_restaurant": "Japanese",
     "chinese_restaurant": "Chinese",
     "italian_restaurant": "Italian",
     "pizza_restaurant": "Italian",
     "french_restaurant": "Western",
     "american_restaurant": "Western",
     "hamburger_restaurant": "Western",
+    "fast_food_restaurant": "Western",
     "thai_restaurant": "Asian",
     "vietnamese_restaurant": "Asian",
     "seafood_restaurant": "Seafood",
@@ -48,11 +53,18 @@ CATEGORY_MAP = {
     "coffee_shop": "Bakery & Cafe",
     "bar": "Bar",
     "wine_bar": "Bar",
+    "chicken_wings_restaurant": "Chicken",
     "restaurant": "Korean",
     "meal_takeaway": "Korean",
     "meal_delivery": "Korean",
-    "fast_food_restaurant": "Western",
 }
+
+CATEGORIES = [
+    "Asian", "Bakery & Cafe", "Bar", "Chinese", "Chicken",
+    "Gopchang", "Italian", "Japanese", "Korean", "Korean BBQ",
+    "Korean Soup", "Noodles", "Seafood", "Street Food",
+    "Tteokbokki", "Western",
+]
 
 
 def parse_maps_url(url: str) -> tuple[str | None, float | None, float | None]:
@@ -180,7 +192,7 @@ def get_photo_url(photo_name: str) -> str:
 def get_subway(lat: float, lng: float) -> str:
     resp = requests.post(
         f"{BASE_URL}:searchNearby",
-        headers={**HEADERS, "X-Goog-FieldMask": "places.displayName,places.location"},
+        headers={**HEADERS, "X-Goog-FieldMask": "places.displayName,places.location,places.name"},
         json={
             "includedTypes": ["subway_station"],
             "maxResultCount": 1,
@@ -202,7 +214,19 @@ def get_subway(lat: float, lng: float) -> str:
     slng = station["location"]["longitude"]
     dist = haversine(lat, lng, slat, slng)
     minutes = math.ceil(dist / 67)
-    name = station["displayName"]["text"].replace(" Station", "").strip()
+    name = station["displayName"]["text"]
+
+    if re.search(r'[\uAC00-\uD7A3]', name):
+        place_name = station.get("name", "")
+        if place_name:
+            detail_resp = requests.get(
+                f"{BASE_URL}/{place_name}",
+                headers={**HEADERS, "X-Goog-FieldMask": "displayName"},
+                params={"languageCode": "en"},
+            )
+            name = detail_resp.json().get("displayName", {}).get("text", name)
+
+    name = name.replace(" Station", "").strip()
     return f"{name} Station, {minutes} min walk"
 
 

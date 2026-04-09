@@ -4,10 +4,9 @@ import json
 import streamlit as st
 from dotenv import load_dotenv
 from supabase import create_client
-from anthropic import Anthropic
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
-from pipeline.enrich import search_place, search_place_by_url, parse_maps_url, to_english_name, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components, normalize_region
+from pipeline.enrich import search_place, search_place_by_url, parse_maps_url, to_english_name, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components, normalize_region, PRICE_MAP, CATEGORY_MAP, CATEGORIES
 from pipeline.generator import generate_post, generate_post_ja, generate_metadata
 from pipeline.rag.embed import embed_spot
 from pipeline.fill_ja_metadata import translate_what_to_order
@@ -16,51 +15,84 @@ from pipeline.fill_ja_guides import translate as translate_guide
 
 load_dotenv()
 
+
+def _generate_guide_content(title: str, subtitle: str, spot_slugs: list) -> dict:
+    from anthropic import Anthropic
+    client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    spots = sb.table("spots").select("english_name, name, category, region, memo, what_to_order, tagline").in_("english_name", spot_slugs).execute().data
+    spots_info = "\n\n".join(
+        f"- {s.get('english_name') or s['name']} ({s.get('category','')}, {s.get('region','')})\n"
+        f"  memo: {s.get('memo','')}\n"
+        f"  what_to_order: {s.get('what_to_order','')}"
+        for s in spots
+    )
+    res = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1500,
+        messages=[{"role": "user", "content": f"""Write intro and body for a Bapmap guide page.
+
+Guide title: {title}
+Subtitle: {subtitle}
+
+Spots:
+{spots_info}
+
+Rules:
+- Tone: honest local friend, not a blogger. Short sentences. No fluff.
+- Intro: 2-3 sentences max. Hook. Why these spots matter together.
+- Body: markdown. Each spot gets a short paragraph (2-3 sentences). Specific — use actual dish names, prices, K-culture connections from memos.
+- No "hidden gem", "must-try", "culinary journey"
+- End body with a practical tip (best time to visit, order of stops, etc.)
+
+Return JSON only:
+{{"intro": "...", "body": "..."}}"""}]
+    )
+    import json
+    text = res.content[0].text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+    return json.loads(text)
+
+
+def _generate_and_upload_spot(spot_id: str, memo: str = None) -> dict:
+    if memo is not None:
+        sb.table("spots").update({"memo": memo}).eq("id", spot_id).execute()
+    full_spot = sb.table("spots").select("*").eq("id", spot_id).execute().data[0]
+    generated = generate_post(full_spot)
+    generated_ja = generate_post_ja(generated)
+    meta = generate_metadata(full_spot)
+    what_to_order = meta.get("what_to_order") or []
+    update = {
+        "content": generated,
+        "content_ja": generated_ja,
+        "status": "업로드완료",
+        "what_to_order": what_to_order,
+        "good_for": meta.get("good_for") or [],
+    }
+    try:
+        spice = meta.get("spice_level")
+        if spice is not None:
+            update["spice_level"] = int(spice)
+    except (TypeError, ValueError):
+        pass
+    if what_to_order:
+        update["what_to_order_ja"] = translate_what_to_order(what_to_order)
+    reviews = full_spot.get("google_reviews") or []
+    if reviews:
+        update["google_reviews_ja"] = translate_reviews(reviews)
+    sb.table("spots").update(update).eq("id", spot_id).execute()
+    full_spot["content"] = generated
+    try:
+        embed_spot(full_spot)
+    except Exception as e:
+        st.warning(f"임베딩 실패: {e}")
+    return full_spot
+
+
 # Streamlit Cloud secrets 우선, 없으면 .env
 for key in ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "GOOGLE_PLACES_API_KEY", "ANTHROPIC_API_KEY", "WORDPRESS_URL", "WORDPRESS_USER", "WORDPRESS_APP_PASSWORD"]:
     if key in st.secrets:
         os.environ[key] = st.secrets[key]
 
 sb = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
-anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-
-PRICE_MAP = {
-    "PRICE_LEVEL_FREE": "$",
-    "PRICE_LEVEL_INEXPENSIVE": "$",
-    "PRICE_LEVEL_MODERATE": "$$",
-    "PRICE_LEVEL_EXPENSIVE": "$$$",
-    "PRICE_LEVEL_VERY_EXPENSIVE": "$$$$",
-}
-
-CATEGORY_MAP = {
-    "korean_restaurant": "Korean",
-    "korean_barbecue_restaurant": "Korean BBQ",
-    "barbecue_restaurant": "Korean BBQ",
-    "steak_house": "Korean BBQ",
-    "japanese_restaurant": "Japanese",
-    "ramen_restaurant": "Noodles",
-    "noodle_restaurant": "Noodles",
-    "sushi_restaurant": "Japanese",
-    "izakaya_restaurant": "Japanese",
-    "chinese_restaurant": "Chinese",
-    "italian_restaurant": "Italian",
-    "pizza_restaurant": "Italian",
-    "french_restaurant": "Western",
-    "american_restaurant": "Western",
-    "hamburger_restaurant": "Western",
-    "fast_food_restaurant": "Western",
-    "thai_restaurant": "Asian",
-    "vietnamese_restaurant": "Asian",
-    "seafood_restaurant": "Seafood",
-    "cafe": "Bakery & Cafe",
-    "coffee_shop": "Bakery & Cafe",
-    "bakery": "Bakery & Cafe",
-    "bar": "Bar",
-    "wine_bar": "Bar",
-    "chicken_wings_restaurant": "Chicken",
-    "restaurant": "Korean",
-    "meal_takeaway": "Korean",
-}
 
 st.set_page_config(page_title="Bapmap Admin", page_icon="🍚", layout="wide")
 st.title("🍚 Bapmap Admin")
@@ -132,13 +164,6 @@ with tab1:
             city = st.text_input("도시 (city)", value=city, key="edit_city")
         with r1c2:
             region = st.text_input("지역 (region)", value=region, key="edit_region")
-
-        CATEGORIES = [
-            "Asian", "Bakery & Cafe", "Bar", "Chinese", "Chicken",
-            "Gopchang", "Italian", "Japanese", "Korean", "Korean BBQ",
-            "Korean Soup", "Noodles", "Seafood", "Street Food",
-            "Tteokbokki", "Western",
-        ]
 
         r2c1, r2c2, r2c3 = st.columns(3)
         with r2c1:
@@ -276,35 +301,7 @@ with tab2:
             for i, r in enumerate(memo_done):
                 name = r.get("english_name") or r["name"]
                 with st.spinner(f"{name} 생성 중... ({i+1}/{len(memo_done)})"):
-                    full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
-                    generated = generate_post(full_spot)
-                    generated_ja = generate_post_ja(generated)
-                    meta = generate_metadata(full_spot)
-                    what_to_order = meta.get("what_to_order") or []
-                    update = {
-                        "content": generated,
-                        "content_ja": generated_ja,
-                        "status": "업로드완료",
-                        "what_to_order": what_to_order,
-                        "good_for": meta.get("good_for") or [],
-                    }
-                    try:
-                        spice = meta.get("spice_level")
-                        if spice is not None:
-                            update["spice_level"] = int(spice)
-                    except (TypeError, ValueError):
-                        pass
-                    if what_to_order:
-                        update["what_to_order_ja"] = translate_what_to_order(what_to_order)
-                    reviews = full_spot.get("google_reviews") or []
-                    if reviews:
-                        update["google_reviews_ja"] = translate_reviews(reviews)
-                    sb.table("spots").update(update).eq("id", r["id"]).execute()
-                    full_spot["content"] = generated
-                    try:
-                        embed_spot(full_spot)
-                    except Exception as e:
-                        st.warning(f"임베딩 실패 ({name}): {e}")
+                    _generate_and_upload_spot(r["id"])
                 progress.progress((i + 1) / len(memo_done))
             st.success(f"✅ {len(memo_done)}개 완료!")
             st.rerun()
@@ -323,13 +320,9 @@ with tab2:
             with loc_col2:
                 new_subway = st.text_input("지하철역 (영어로: e.g. Gangnam Station, 5 min walk)", value=r.get("subway") or "", key=f"subway_{r['id']}")
             with loc_col3:
-                _all_cats = ["Asian", "Bakery & Cafe", "Bar", "Chinese", "Chicken",
-                             "Gopchang", "Italian", "Japanese", "Korean", "Korean BBQ",
-                             "Korean Soup", "Noodles", "Seafood", "Street Food",
-                             "Tteokbokki", "Western"]
                 _cur = r.get("category") or ""
-                _idx = _all_cats.index(_cur) if _cur in _all_cats else 0
-                new_category = st.selectbox("카테고리", _all_cats, index=_idx, key=f"category_{r['id']}")
+                _idx = CATEGORIES.index(_cur) if _cur in CATEGORIES else 0
+                new_category = st.selectbox("카테고리", CATEGORIES, index=_idx, key=f"category_{r['id']}")
 
             new_spice = st.select_slider(
                 "매운맛",
@@ -354,36 +347,7 @@ with tab2:
                         st.error("메모를 먼저 써주세요")
                     else:
                         with st.spinner("글 생성 중..."):
-                            sb.table("spots").update({"memo": memo}).eq("id", r["id"]).execute()
-                            full_spot = sb.table("spots").select("*").eq("id", r["id"]).execute().data[0]
-                            generated = generate_post(full_spot)
-                            generated_ja = generate_post_ja(generated)
-                            meta = generate_metadata(full_spot)
-                            what_to_order = meta.get("what_to_order") or []
-                            update = {
-                                "content": generated,
-                                "content_ja": generated_ja,
-                                "status": "업로드완료",
-                                "what_to_order": what_to_order,
-                                "good_for": meta.get("good_for") or [],
-                            }
-                            try:
-                                spice = meta.get("spice_level")
-                                if spice is not None:
-                                    update["spice_level"] = int(spice)
-                            except (TypeError, ValueError):
-                                pass
-                            if what_to_order:
-                                update["what_to_order_ja"] = translate_what_to_order(what_to_order)
-                            reviews = full_spot.get("google_reviews") or []
-                            if reviews:
-                                update["google_reviews_ja"] = translate_reviews(reviews)
-                            sb.table("spots").update(update).eq("id", r["id"]).execute()
-                            full_spot["content"] = generated
-                            try:
-                                embed_spot(full_spot)
-                            except Exception as e:
-                                st.warning(f"임베딩 실패: {e}")
+                            _generate_and_upload_spot(r["id"], memo=memo)
                         st.success("✅ 글 생성 완료! 업로드됨")
                         st.rerun()
 
@@ -457,7 +421,7 @@ with tab3:
                 index=0 if g.get("status") == "draft" else 1,
                 key=f"est_{g['id']}")
 
-            col1, col2 = st.columns([1, 1])
+            col1, col2, col3 = st.columns([1, 1, 1])
             with col1:
                 if st.button("업데이트", key=f"upd_{g['id']}"):
                     spot_slugs = [s.strip() for s in e_spots.strip().splitlines() if s.strip()]
@@ -479,6 +443,17 @@ with tab3:
                     st.success("✅ 업데이트 완료 (일본어 포함)")
                     st.rerun()
             with col2:
+                if st.button("✨ AI 초안 생성", key=f"ai_{g['id']}"):
+                    spot_slugs = [s.strip() for s in e_spots.strip().splitlines() if s.strip()]
+                    if not spot_slugs:
+                        st.error("스팟 목록을 먼저 입력해주세요")
+                    else:
+                        with st.spinner("AI 생성 중..."):
+                            generated = _generate_guide_content(e_title, e_subtitle, spot_slugs)
+                        st.session_state[f"ei_{g['id']}"] = generated.get("intro", "")
+                        st.session_state[f"eb_{g['id']}"] = generated.get("body", "")
+                        st.rerun()
+            with col3:
                 if st.button("🗑️ 삭제", key=f"del_{g['id']}"):
                     sb.table("guides").delete().eq("id", g["id"]).execute()
                     st.rerun()

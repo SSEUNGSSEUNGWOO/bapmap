@@ -3,6 +3,7 @@
 실행: python -m pipeline.fill_ja_reviews
 """
 import os
+import json
 import time
 from supabase import create_client
 from openai import OpenAI
@@ -26,7 +27,6 @@ def translate_reviews(reviews: list[str]) -> list[str]:
         messages=[{"role": "user", "content": PROMPT.format(reviews=combined)}],
         temperature=0.3,
     )
-    import json
     text = resp.choices[0].message.content.strip()
     # strip markdown code block if present
     if text.startswith("```"):
