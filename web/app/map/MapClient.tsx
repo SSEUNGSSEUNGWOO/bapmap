@@ -5,6 +5,25 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useLang } from "@/lib/LanguageContext";
 
+const CATEGORY_JA: Record<string, string> = {
+  "Asian": "アジア料理",
+  "Bakery & Cafe": "ベーカリー・カフェ",
+  "Bar": "バー",
+  "Chinese": "中華料理",
+  "Gopchang": "ホルモン焼き",
+  "Italian": "イタリア料理",
+  "Japanese": "日本料理",
+  "Korean": "韓国料理",
+  "Korean BBQ": "韓国焼肉",
+  "Korean Soup": "韓国スープ",
+  "Noodles": "麺料理",
+  "Pizza": "ピザ",
+  "Seafood": "海鮮",
+  "Street Food": "屋台料理",
+  "Tteokbokki": "トッポッキ",
+  "Western": "洋食",
+};
+
 const REGION_JA: Record<string, string> = {
   "Dongdaemun District": "東大門区", "Dongdaemun-gu": "東大門区",
   "Dongjak District": "銅雀区", "Dongjak-gu": "銅雀区",
@@ -151,6 +170,7 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
         popup.current?.remove();
         const isJa = langRef.current === "ja";
         const regionLabel = isJa ? props.region_ja : props.region;
+        const categoryLabel = isJa ? (CATEGORY_JA[props.category] || props.category) : props.category;
         popup.current = new mapboxgl.Popup({ offset: 12, maxWidth: "220px", closeButton: false, closeOnClick: false })
           .setLngLat(coords)
           .setHTML(`
@@ -159,7 +179,7 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
               <div style="padding:8px 10px;">
                 <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#F5A623;margin-bottom:3px;">${regionLabel}</div>
                 <div style="font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">${props.name}</div>
-                <div style="font-size:11px;color:#888;">★ ${props.rating} · ${props.category}</div>
+                <div style="font-size:11px;color:#888;">★ ${props.rating} · ${categoryLabel}</div>
               </div>
             </div>
           `)
