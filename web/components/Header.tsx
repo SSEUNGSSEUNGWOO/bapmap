@@ -24,7 +24,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const isHome = pathname === "/";
+  const isHome = pathname === "/" || pathname === "/ja";
   const { lang, setLang, p } = useLang();
   const NAV = (lang === "ja" ? NAV_JA : NAV_EN).map((n) => ({ ...n, href: p(n.href) }));
   const searchLabel = lang === "ja" ? "検索 ✦" : "Search ✦";
