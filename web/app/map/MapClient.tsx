@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useLang } from "@/lib/LanguageContext";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -20,6 +21,7 @@ type Spot = {
 };
 
 export default function MapClient({ spots }: { spots: Spot[] }) {
+  const { p } = useLang();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const popup = useRef<mapboxgl.Popup | null>(null);
@@ -148,7 +150,7 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
       // Click → navigate to spot page
       m.on("click", "unclustered-point", (e) => {
         const slug = e.features?.[0]?.properties?.slug;
-        if (slug) window.location.href = `/spots/${slug}`;
+        if (slug) window.location.href = p(`/spots/${slug}`);
       });
 
       m.on("mouseenter", "clusters", () => { m.getCanvas().style.cursor = "pointer"; });
