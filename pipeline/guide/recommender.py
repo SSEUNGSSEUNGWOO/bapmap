@@ -36,7 +36,7 @@ def recommender(state: dict) -> dict:
 Below is the full list of spots in the database. Group them into {count} thematic guide clusters that would make great standalone guides for English-speaking travelers interested in K-culture, food, and Seoul life.
 
 Criteria for a good cluster:
-- 3-5 spots that share a clear theme (K-pop connection, neighborhood, cuisine type, occasion, etc.)
+- Exactly 4 spots per cluster (K-pop connection, neighborhood, cuisine type, occasion, etc.)
 - Each spot should add something different — avoid redundancy
 - Prioritize clusters with K-pop/K-drama/celebrity connections when possible
 - The theme should be specific enough to be useful, not just "good restaurants in Seoul"
@@ -49,7 +49,7 @@ Return a JSON array of {count} clusters:
   {{
     "theme": "short theme name",
     "reason": "1 sentence why these spots work together",
-    "spots": ["English Name 1", "English Name 2", ...]
+    "spots": ["English Name 1", "English Name 2", "English Name 3", "English Name 4"]
   }}
 ]
 
