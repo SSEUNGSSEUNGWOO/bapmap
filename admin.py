@@ -360,19 +360,58 @@ with tab3:
 
     # 새 가이드 작성
     with st.expander("➕ 새 가이드 작성", expanded=len(guides_data) == 0):
-        g_title = st.text_input("제목", key="g_title")
-        g_slug = st.text_input("Slug (URL)", key="g_slug", help="예: late-night-seoul")
-        g_subtitle = st.text_area("부제 (카드에 표시)", key="g_subtitle", height=80)
-        g_cover = st.text_input("커버 이미지 URL", key="g_cover")
-        g_tag = st.text_input("카테고리 태그", key="g_tag", help="예: Late Night, Budget, Solo")
-        g_intro = st.text_area("인트로 문장 (이탤릭으로 표시)", key="g_intro", height=100)
-        g_body = st.text_area("본문 (마크다운)", key="g_body", height=300, help="## 소제목, **굵게**, 일반 텍스트 등 마크다운 사용 가능")
         g_spots = st.text_area(
             "스팟 english_name 목록 (한 줄에 하나)",
             key="g_spots",
             height=150,
             help="예:\nPark Makrye Cheongjin-dong Haejangguk\nDaesung Jib"
         )
+
+        if st.button("✨ AI로 전체 채우기", key="ai_guide", type="primary"):
+            spot_slugs = [s.strip() for s in g_spots.strip().splitlines() if s.strip()]
+            if not spot_slugs:
+                st.error("스팟 목록을 먼저 입력해주세요")
+            else:
+                with st.spinner("AI 생성 중..."):
+                    from anthropic import Anthropic
+                    import json as _json
+                    _client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                    spots = sb.table("spots").select("english_name, name, category, region, memo, what_to_order, tagline").in_("english_name", spot_slugs).execute().data
+                    spots_info = "\n\n".join(
+                        f"- {s.get('english_name') or s['name']} ({s.get('category','')}, {s.get('region','')})\n  memo: {s.get('memo','')}"
+                        for s in spots
+                    )
+                    res = _client.messages.create(
+                        model="claude-sonnet-4-6",
+                        max_tokens=2000,
+                        messages=[{"role": "user", "content": f"""Create a complete Bapmap guide from these spots.
+
+Spots:
+{spots_info}
+
+Return JSON only:
+{{
+  "title": "SEO-friendly English title, under 70 chars",
+  "slug": "url-friendly-slug",
+  "subtitle": "1-2 sentences. Hook. Why these spots together.",
+  "category_tag": "1-3 tags e.g. K-pop, Bakery, Celebrity",
+  "intro": "2-3 sentences. Punchy. Why this guide exists.",
+  "body": "markdown. Each spot gets 2-3 sentences using memo info. End with a practical tip."
+}}"""}]
+                    )
+                    text = res.content[0].text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+                    data = _json.loads(text)
+                for k, v in data.items():
+                    st.session_state[f"g_{k}"] = v
+                st.rerun()
+
+        g_title = st.text_input("제목", key="g_title", value=st.session_state.get("g_title", ""))
+        g_slug = st.text_input("Slug (URL)", key="g_slug", value=st.session_state.get("g_slug", ""), help="예: late-night-seoul")
+        g_subtitle = st.text_area("부제 (카드에 표시)", key="g_subtitle", value=st.session_state.get("g_subtitle", ""), height=80)
+        g_cover = st.text_input("커버 이미지 URL", key="g_cover")
+        g_tag = st.text_input("카테고리 태그", key="g_tag", value=st.session_state.get("g_tag", ""), help="예: Late Night, Budget, Solo")
+        g_intro = st.text_area("인트로 문장 (이탤릭으로 표시)", key="g_intro", value=st.session_state.get("g_intro", ""), height=100)
+        g_body = st.text_area("본문 (마크다운)", key="g_body", value=st.session_state.get("g_body", ""), height=300)
         g_status = st.selectbox("상태", ["draft", "published"], key="g_status")
 
         if st.button("저장", key="save_guide"):
@@ -397,6 +436,8 @@ with tab3:
                         "body_ja": translate_guide(g_body) if g_body else "",
                     }
                     sb.table("guides").upsert(guide_data).execute()
+                for k in ["g_title", "g_slug", "g_subtitle", "g_tag", "g_intro", "g_body"]:
+                    st.session_state.pop(k, None)
                 st.success(f"✅ '{g_title}' 저장 완료 (일본어 포함)")
                 st.rerun()
 
