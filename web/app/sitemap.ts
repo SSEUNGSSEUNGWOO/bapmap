@@ -78,6 +78,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: "https://bapmap.com/ja/spots", lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: "https://bapmap.com/guides", lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: "https://bapmap.com/ja/guides", lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: "https://bapmap.com/map", lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
+    { url: "https://bapmap.com/ja/map", lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
     { url: "https://bapmap.com/cities", lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: "https://bapmap.com/about", lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     ...cityUrls,
