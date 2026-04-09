@@ -401,6 +401,56 @@ Return JSON only:
                     )
                     text = res.content[0].text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
                     data = _json.loads(text)
+
+                    # Eval
+                    EVAL_PROMPT = """You are a content quality evaluator for Bapmap, a Korean local food guide for English-speaking travelers.
+
+Evaluate this guide on 5 criteria (each 0-10):
+1. Specificity — concrete details, menu names, prices, practical tips
+2. Human voice — reads like a person, not an AI. Penalize: "vibrant", "hidden gem", "culinary journey", vague encouraging sentences, generic closings
+3. Usefulness — would a traveler actually use this info?
+4. SEO — does the title/structure target real search queries?
+5. GEO — would an AI engine (ChatGPT, Perplexity) cite this as a source?
+
+Approval threshold: total >= 40/50
+
+Return JSON only:
+{{"scores": {{"specificity": 0, "human_voice": 0, "usefulness": 0, "seo": 0, "geo": 0}}, "total": 0, "approved": true, "feedback": "..."}}
+
+Title: {title}
+Body:
+{body}"""
+
+                    eval_res = _client.messages.create(
+                        model="claude-haiku-4-5-20251001",
+                        max_tokens=500,
+                        messages=[{"role": "user", "content": EVAL_PROMPT.format(title=data.get("title",""), body=data.get("body",""))}]
+                    )
+                    eval_text = eval_res.content[0].text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+                    try:
+                        eval_data = _json.loads(eval_text)
+                    except Exception:
+                        eval_data = {"approved": True, "total": 0, "feedback": ""}
+
+                    st.write(f"📊 평가 점수: {eval_data.get('total', 0)}/50 — {'✅ 통과' if eval_data.get('approved') else '❌ 재작성'}")
+
+                    if not eval_data.get("approved"):
+                        feedback = eval_data.get("feedback", "")
+                        revise_res = _client.messages.create(
+                            model="claude-sonnet-4-6",
+                            max_tokens=2000,
+                            messages=[{"role": "user", "content": f"""Revise the body of this Bapmap guide based on the feedback below.
+Keep [spot:Name] tags in place. Keep 3-4 sentences before each spot card.
+
+Feedback: {feedback}
+
+Current body:
+{data['body']}
+
+Return only the revised body text, no JSON."""}]
+                        )
+                        data["body"] = revise_res.content[0].text.strip()
+
                 for k, v in data.items():
                     st.session_state[f"g_{k}"] = v
                 st.rerun()
