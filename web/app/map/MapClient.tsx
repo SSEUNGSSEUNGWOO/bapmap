@@ -98,6 +98,15 @@ export default function MapClient({ spots }: { spots: Spot[] }) {
     };
 
     m.on("load", () => {
+      // 일본어 지도 레이블
+      if (langRef.current === "ja") {
+        m.getStyle().layers.forEach((layer) => {
+          if (layer.type === "symbol" && (layer as mapboxgl.SymbolLayer).layout?.["text-field"]) {
+            m.setLayoutProperty(layer.id, "text-field", ["coalesce", ["get", "name_ja"], ["get", "name"]]);
+          }
+        });
+      }
+
       m.addSource("spots", {
         type: "geojson",
         data: geojson,
