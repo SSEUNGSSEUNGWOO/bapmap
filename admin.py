@@ -377,20 +377,22 @@ with tab3:
             else:
                 with st.spinner("AI 생성 중..."):
                     from anthropic import Anthropic
-                    from anthropic._exceptions import OverloadedError
                     import json as _json
                     import time as _time
                     _client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-                    def _call_with_retry(fn, retries=3, wait=15):
+                    def _call_with_retry(fn, retries=4, wait=20):
+                        last_exc = None
                         for i in range(retries):
                             try:
                                 return fn()
-                            except OverloadedError:
-                                if i < retries - 1:
+                            except Exception as e:
+                                if "overloaded" in str(e).lower() or "529" in str(e):
+                                    last_exc = e
                                     _time.sleep(wait)
                                 else:
                                     raise
+                        raise last_exc
                     spots = sb.table("spots").select("english_name, name, category, region, memo, what_to_order, tagline").in_("english_name", spot_slugs).execute().data
                     spots_info = "\n\n".join(
                         f"- {s.get('english_name') or s['name']} ({s.get('category','')}, {s.get('region','')})\n  memo: {s.get('memo','')}"
@@ -431,7 +433,7 @@ Return JSON only:
                     ])).strip()
                     try:
                         eval_state = _call_with_retry(lambda: eval_agent({"title": data.get("title", ""), "draft": full_draft, "provider": "anthropic"}))
-                    except OverloadedError:
+                    except Exception:
                         eval_state = {"approved": True, "eval_score": 0, "eval_feedback": ""}
                     eval_data = {"approved": eval_state.get("approved", True), "total": eval_state.get("eval_score", 0), "feedback": eval_state.get("eval_feedback", "")}
 
