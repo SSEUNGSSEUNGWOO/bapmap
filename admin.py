@@ -8,7 +8,7 @@ from supabase import create_client
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
 from pipeline.enrich import search_place, search_place_by_url, parse_maps_url, to_english_name, get_korean_address, get_photo_url, get_subway, parse_hours, parse_address_components, normalize_region, PRICE_MAP, CATEGORY_MAP, CATEGORIES
 from pipeline.generator import generate_post, generate_post_ja, generate_metadata
-from pipeline.rag.embed import embed_spot
+from pipeline.rag.embed_v2 import embed_spot
 from pipeline.fill_ja_metadata import translate_what_to_order
 from pipeline.fill_ja_reviews import translate_reviews
 from pipeline.fill_ja_guides import translate as translate_guide

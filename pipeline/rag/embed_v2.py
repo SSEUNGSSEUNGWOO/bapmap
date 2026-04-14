@@ -3,24 +3,26 @@ BGE-M3 임베딩 + spot_chunks 테이블 저장 (단일 청크)
 실행: python3 -m pipeline.rag.embed_v2 --cap 512
 """
 import os
-import argparse
 from dotenv import load_dotenv
 from supabase import create_client
-from sentence_transformers import SentenceTransformer
 from pipeline.rag.parse import parse_spot
 
 load_dotenv()
 
 sb = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
 
-print("BGE-M3 모델 로딩...")
-model = SentenceTransformer("BAAI/bge-m3")
-
 BATCH_SIZE = 8
+DEFAULT_CAP = 512
+
+_model = None
 
 
-def _approx_tokens(text: str) -> int:
-    return len(text.split())
+def _get_model():
+    global _model
+    if _model is None:
+        from sentence_transformers import SentenceTransformer
+        _model = SentenceTransformer("BAAI/bge-m3")
+    return _model
 
 
 def _truncate(text: str, max_tokens: int) -> str:
@@ -30,7 +32,7 @@ def _truncate(text: str, max_tokens: int) -> str:
     return " ".join(words[:max_tokens])
 
 
-def make_single_chunk(spot: dict, cap: int) -> dict | None:
+def make_single_chunk(spot: dict, cap: int = DEFAULT_CAP) -> dict | None:
     parsed = parse_spot(spot)
     if not parsed["metadata_text"]:
         return None
@@ -50,8 +52,27 @@ def make_single_chunk(spot: dict, cap: int) -> dict | None:
 
 
 def embed_batch(texts: list[str]) -> list[list[float]]:
+    model = _get_model()
     vecs = model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
     return vecs.tolist()
+
+
+def embed_spot(spot: dict, cap: int = DEFAULT_CAP) -> bool:
+    chunk = make_single_chunk(spot, cap)
+    if not chunk:
+        return False
+
+    emb = embed_batch([chunk["content"]])[0]
+    spot_id = chunk["spot_id"]
+
+    sb.table("spot_chunks").delete().eq("spot_id", spot_id).execute()
+    sb.table("spot_chunks").insert({
+        "spot_id": spot_id,
+        "chunk_type": "single",
+        "content": chunk["content"],
+        "embedding": emb,
+    }).execute()
+    return True
 
 
 def run(cap: int):
@@ -93,7 +114,8 @@ def run(cap: int):
 
 
 if __name__ == "__main__":
+    import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cap", type=int, default=512)
+    parser.add_argument("--cap", type=int, default=DEFAULT_CAP)
     args = parser.parse_args()
     run(args.cap)
