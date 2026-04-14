@@ -85,3 +85,80 @@ def parse_spot(spot: dict) -> dict:
         "metadata_text": metadata_text,
         "content_text": content_text,
     }
+
+
+def parse_spot_v2(spot: dict) -> dict:
+    name = spot.get("english_name") or spot.get("name", "")
+    korean_name = spot.get("name", "")
+    category = spot.get("category", "")
+    region = spot.get("region") or spot.get("city", "")
+    city = spot.get("city", "")
+    subway = spot.get("subway", "")
+    price = spot.get("price_level", "")
+    rating = spot.get("rating", "")
+    hours = spot.get("hours", "")
+    memo = spot.get("memo", "")
+    reviews = spot.get("google_reviews") or []
+    address = spot.get("english_address") or spot.get("address", "")
+    tagline = spot.get("tagline", "")
+    wto = spot.get("what_to_order") or []
+
+    attrs = []
+    if spot.get("vegetarian"):
+        attrs.append("vegetarian-friendly")
+    if spot.get("reservable"):
+        attrs.append("reservations available")
+    if spot.get("good_for_groups"):
+        attrs.append("good for groups")
+
+    profile = "\n".join(filter(None, [
+        f"Restaurant: {name} ({korean_name})" if korean_name != name else f"Restaurant: {name}",
+        f"Type: {category}",
+        f"Location: {region}, {city}",
+        f"Price: {price}" if price else None,
+        f"Rating: {rating} stars" if rating else None,
+        f"Features: {', '.join(attrs)}" if attrs else None,
+        f"Tagline: {tagline}" if tagline else None,
+    ]))
+
+    location = "\n".join(filter(None, [
+        f"Address: {address}" if address else None,
+        f"Nearest subway: {subway}" if subway else None,
+        f"Hours: {hours}" if hours else None,
+    ]))
+
+    menu = "\n".join(f"- {item}" for item in wto) if wto else None
+    if menu:
+        menu = f"What to order at {name}:\n{menu}"
+
+    review_text = None
+    if reviews:
+        review_text = f"Google reviews for {name}:\n" + "\n---\n".join(str(r) for r in reviews[:3])
+
+    memo_text = None
+    if memo:
+        memo_text = f"Curator note for {name}: {memo.strip()}"
+
+    content_raw = spot.get("content", "")
+    content_text = strip_markdown(content_raw) if content_raw else None
+
+    chunks = {}
+    if profile:
+        chunks["profile"] = profile
+    if location:
+        chunks["location"] = location
+    if memo_text:
+        chunks["memo"] = memo_text
+    if menu:
+        chunks["menu"] = menu
+    if review_text:
+        chunks["reviews"] = review_text
+    if content_text:
+        chunks["content"] = content_text
+
+    return {
+        "id": spot.get("id"),
+        "name": name,
+        "status": spot.get("status", ""),
+        "chunks": chunks,
+    }

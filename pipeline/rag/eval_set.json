@@ -1,0 +1,352 @@
+[
+  {
+    "id": 1,
+    "query": "ramen near Seongsu",
+    "type": "location+cuisine",
+    "expected": ["Menya Konoha"],
+    "acceptable": ["Longme"]
+  },
+  {
+    "id": 2,
+    "query": "cheap Korean BBQ in Gangnam",
+    "type": "price+cuisine+location",
+    "expected": ["Yeongdongweonsamgyeobsal"],
+    "acceptable": ["Gwanggaeto Jeongyugsigdang"]
+  },
+  {
+    "id": 3,
+    "query": "소금빵",
+    "type": "korean_menu",
+    "expected": ["Freak", "Bread05 Singil"],
+    "acceptable": []
+  },
+  {
+    "id": 4,
+    "query": "where does Jennie eat",
+    "type": "kculture",
+    "expected": ["For Four Bread", "Laiby Cakeout"],
+    "acceptable": []
+  },
+  {
+    "id": 5,
+    "query": "best bagel in Seoul",
+    "type": "cuisine",
+    "expected": ["Kokkili Bagel Hannam"],
+    "acceptable": []
+  },
+  {
+    "id": 6,
+    "query": "late night food Itaewon",
+    "type": "occasion+location",
+    "expected": ["Freak", "Ssongthai Chiang Mai"],
+    "acceptable": ["WOW Shin nae tteok(spicy Tteokbokki)"]
+  },
+  {
+    "id": 7,
+    "query": "곱창 맛집",
+    "type": "korean_cuisine",
+    "expected": ["Jingu Gopchang", "Gopchang Uijeonseol Noryangjin"],
+    "acceptable": []
+  },
+  {
+    "id": 8,
+    "query": "vegetarian friendly restaurant",
+    "type": "dietary",
+    "expected": ["For Four Bread"],
+    "acceptable": ["Sohwayeonbbang"]
+  },
+  {
+    "id": 9,
+    "query": "good for groups near Gangnam",
+    "type": "occasion+location",
+    "expected": ["Bulia Yeogsamjeom", "Gwanggaeto Jeongyugsigdang"],
+    "acceptable": ["Idaepaljjuggumi"]
+  },
+  {
+    "id": 10,
+    "query": "I want something spicy",
+    "type": "taste",
+    "expected": ["WOW Shin nae tteok(spicy Tteokbokki)", "Sosin Isso"],
+    "acceptable": ["Tamtam"]
+  },
+  {
+    "id": 11,
+    "query": "wine bar Seoul",
+    "type": "cuisine",
+    "expected": ["Eoseureum", "Mutin"],
+    "acceptable": ["Komfy"]
+  },
+  {
+    "id": 12,
+    "query": "한남동 맛집",
+    "type": "korean_location",
+    "expected": ["Kokkili Bagel Hannam", "Gongi"],
+    "acceptable": ["Ssongthai Chiang Mai"]
+  },
+  {
+    "id": 13,
+    "query": "celebrity restaurant BTS",
+    "type": "kculture",
+    "expected": ["Geumdwaeji Sikdang"],
+    "acceptable": []
+  },
+  {
+    "id": 14,
+    "query": "pork bone soup hangover",
+    "type": "occasion+cuisine",
+    "expected": ["Somunnan Seongsu Gamjatang (Pork Bone Soup)", "Seoul Ppyeotguk"],
+    "acceptable": ["Park Makrye Cheongjin-dong Haejangguk"]
+  },
+  {
+    "id": 15,
+    "query": "solo dining Jongno",
+    "type": "occasion+location",
+    "expected": ["Ramen Borudo", "Cheolpannam"],
+    "acceptable": ["Jami The Hong"]
+  },
+  {
+    "id": 16,
+    "query": "Thai food",
+    "type": "cuisine",
+    "expected": ["Namjimleus", "Ssongthai Chiang Mai", "Krap Pom"],
+    "acceptable": ["Ban pichai"]
+  },
+  {
+    "id": 17,
+    "query": "pizza Seongsu",
+    "type": "cuisine+location",
+    "expected": ["HDD Pizza Seongsu", "izza", "Pizzeria Marione"],
+    "acceptable": []
+  },
+  {
+    "id": 18,
+    "query": "뚝배기 갈비탕",
+    "type": "korean_menu",
+    "expected": ["Yetmat Seoul Bulgogi"],
+    "acceptable": []
+  },
+  {
+    "id": 19,
+    "query": "unique cafe with a view",
+    "type": "vibe",
+    "expected": ["Kokkili Bagel Hannam", "Namsan Torang"],
+    "acceptable": ["Peking Pleasure"]
+  },
+  {
+    "id": 20,
+    "query": "under 10000 won meal",
+    "type": "price",
+    "expected": ["Seoul Ppyeotguk", "Daerim Guksu", "Eunjujeong"],
+    "acceptable": ["Gangnam Bulbaek"]
+  },
+  {
+    "id": 21,
+    "query": "족발",
+    "type": "korean_menu",
+    "expected": ["Hoegi Wang Jokbal Bossam", "Pyeongnamhalmeonijib"],
+    "acceptable": ["Grandma's Bossam"]
+  },
+  {
+    "id": 22,
+    "query": "hotpot in Seoul",
+    "type": "cuisine",
+    "expected": ["Bulia Yeogsamjeom"],
+    "acceptable": []
+  },
+  {
+    "id": 23,
+    "query": "성수 카페",
+    "type": "korean_location+cuisine",
+    "expected": ["Peking Pleasure", "Pickbake"],
+    "acceptable": ["Grandmother's Recipe"]
+  },
+  {
+    "id": 24,
+    "query": "gluten free bakery",
+    "type": "dietary",
+    "expected": ["Namsan Torang", "Sohwayeonbbang"],
+    "acceptable": ["For Four Bread"]
+  },
+  {
+    "id": 25,
+    "query": "date night restaurant Yongsan",
+    "type": "occasion+location",
+    "expected": ["Gongi", "Commemoa"],
+    "acceptable": ["Mutin"]
+  },
+  {
+    "id": 26,
+    "query": "노홍철 빵집",
+    "type": "kculture",
+    "expected": ["Hong Cheol Book Bread"],
+    "acceptable": []
+  },
+  {
+    "id": 27,
+    "query": "dumpling Seoul",
+    "type": "cuisine",
+    "expected": ["Myeongdong Kyoja Main Restaurant"],
+    "acceptable": []
+  },
+  {
+    "id": 28,
+    "query": "Italian restaurant Mapo",
+    "type": "cuisine+location",
+    "expected": ["Spacca Napoli"],
+    "acceptable": []
+  },
+  {
+    "id": 29,
+    "query": "콩국수",
+    "type": "korean_menu",
+    "expected": ["Jinju Hoegwan", "Jinju House"],
+    "acceptable": []
+  },
+  {
+    "id": 30,
+    "query": "indian food Seoul",
+    "type": "cuisine",
+    "expected": ["Aangan - Indian & Nepal Cuisine Restaurant"],
+    "acceptable": []
+  },
+  {
+    "id": 31,
+    "query": "순대국",
+    "type": "korean_menu",
+    "expected": ["Nongmin Baegam Sundae Main", "Hwamok Sundaeguk"],
+    "acceptable": []
+  },
+  {
+    "id": 32,
+    "query": "egg tart Seoul",
+    "type": "cuisine",
+    "expected": ["Pickbake"],
+    "acceptable": []
+  },
+  {
+    "id": 33,
+    "query": "을지로 맛집",
+    "type": "korean_location",
+    "expected": ["Jullia", "Coffee Hanyakbang", "Ppau"],
+    "acceptable": []
+  },
+  {
+    "id": 34,
+    "query": "sushi conveyor belt",
+    "type": "cuisine",
+    "expected": ["Sushiro Times Square"],
+    "acceptable": []
+  },
+  {
+    "id": 35,
+    "query": "beef Wellington reservation",
+    "type": "menu+occasion",
+    "expected": ["Commemoa"],
+    "acceptable": []
+  },
+  {
+    "id": 36,
+    "query": "mazesoba dry ramen",
+    "type": "menu",
+    "expected": ["Butai Act 2"],
+    "acceptable": ["Longme"]
+  },
+  {
+    "id": 37,
+    "query": "여의도 직장인 점심",
+    "type": "korean_occasion+location",
+    "expected": ["Hwamok Sundaeguk", "Jinju House"],
+    "acceptable": ["Izawa"]
+  },
+  {
+    "id": 38,
+    "query": "Michelin bib gourmand Seoul",
+    "type": "quality",
+    "expected": ["Geumdwaeji Sikdang"],
+    "acceptable": []
+  },
+  {
+    "id": 39,
+    "query": "lamb leg restaurant",
+    "type": "menu",
+    "expected": ["Monggo Yangdari"],
+    "acceptable": []
+  },
+  {
+    "id": 40,
+    "query": "burger Hongdae",
+    "type": "cuisine+location",
+    "expected": ["Teisty Burger Hongdae"],
+    "acceptable": []
+  },
+  {
+    "id": 41,
+    "query": "김치찌개 혼밥",
+    "type": "korean_menu+occasion",
+    "expected": ["Eunjujeong"],
+    "acceptable": []
+  },
+  {
+    "id": 42,
+    "query": "fresh raw fish sashimi Gangnam",
+    "type": "cuisine+location",
+    "expected": ["Bomulseom", "Jamae Sliced Raw Fish Gangnam Main Branch"],
+    "acceptable": []
+  },
+  {
+    "id": 43,
+    "query": "pretzel Seoul",
+    "type": "cuisine",
+    "expected": ["Prettit Lotte World Mall"],
+    "acceptable": []
+  },
+  {
+    "id": 44,
+    "query": "teppanyaki steak",
+    "type": "cuisine",
+    "expected": ["Cheolpannam"],
+    "acceptable": []
+  },
+  {
+    "id": 45,
+    "query": "K-pop idol bakery",
+    "type": "kculture",
+    "expected": ["For Four Bread", "Laiby Cakeout", "Freak", "Kokkili Bagel Hannam"],
+    "acceptable": ["Hong Cheol Book Bread"]
+  },
+  {
+    "id": 46,
+    "query": "donut Euljiro",
+    "type": "menu+location",
+    "expected": ["Ppau"],
+    "acceptable": []
+  },
+  {
+    "id": 47,
+    "query": "vegan bread Seoul",
+    "type": "dietary+cuisine",
+    "expected": ["For Four Bread"],
+    "acceptable": ["Sohwayeonbbang"]
+  },
+  {
+    "id": 48,
+    "query": "해장국 추천",
+    "type": "korean_cuisine",
+    "expected": ["Park Makrye Cheongjin-dong Haejangguk", "Daesung Jib"],
+    "acceptable": ["Seoul Ppyeotguk"]
+  },
+  {
+    "id": 49,
+    "query": "wood fired pizza",
+    "type": "cuisine",
+    "expected": ["Spacca Napoli", "Oseuteriahyeon", "HDD Pizza Seongsu"],
+    "acceptable": ["Pizzeria Marione"]
+  },
+  {
+    "id": 50,
+    "query": "romantic hanok bar",
+    "type": "vibe",
+    "expected": ["Eoseureum"],
+    "acceptable": []
+  }
+]
