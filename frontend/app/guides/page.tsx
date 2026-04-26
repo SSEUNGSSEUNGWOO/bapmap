@@ -5,6 +5,13 @@ import GuidesClient from "./GuidesClient";
 export const metadata: Metadata = {
   title: "Food Guides | Bapmap",
   description: "Curated food guides for Korea — late night eats, budget spots, solo dining, and more.",
+  alternates: {
+    canonical: "https://bapmap.com/guides",
+    languages: {
+      "en": "https://bapmap.com/guides",
+      "ja": "https://bapmap.com/ja/guides",
+    },
+  },
 };
 
 export const revalidate = 300;

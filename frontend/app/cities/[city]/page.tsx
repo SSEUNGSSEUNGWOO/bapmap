@@ -43,6 +43,9 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
   return {
     title: `Best Local Restaurants in ${label} | Bapmap`,
     description: meta?.description || `Curated local food spots in ${label}, Korea.`,
+    alternates: {
+      canonical: `https://bapmap.com/cities/${city}`,
+    },
   };
 }
 

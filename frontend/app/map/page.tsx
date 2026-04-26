@@ -1,9 +1,17 @@
 import { supabase } from "@/lib/supabase";
+import type { Metadata } from "next";
 import MapClient from "./MapClient";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Map — Bapmap",
   description: "Explore local Korean spots on the map.",
+  alternates: {
+    canonical: "https://bapmap.com/map",
+    languages: {
+      "en": "https://bapmap.com/map",
+      "ja": "https://bapmap.com/ja/map",
+    },
+  },
 };
 
 export default async function MapPage() {

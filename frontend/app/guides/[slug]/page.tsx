@@ -63,6 +63,13 @@ export async function generateMetadata({
   return {
     title: `${data.title} | Bapmap`,
     description: data.subtitle || "",
+    alternates: {
+      canonical: `https://bapmap.com/guides/${slug}`,
+      languages: {
+        "en": `https://bapmap.com/guides/${slug}`,
+        "ja": `https://bapmap.com/ja/guides/${slug}`,
+      },
+    },
   };
 }
 

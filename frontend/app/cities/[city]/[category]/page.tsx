@@ -129,6 +129,9 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
   return {
     title: `Best ${catLabel} in ${cityLabel} | Bapmap`,
     description: `The best ${catLabel.toLowerCase()} spots in ${cityLabel}, Korea — personally curated. ${catMeta?.keywords || ""}`,
+    alternates: {
+      canonical: `https://bapmap.com/cities/${city}/${category}`,
+    },
   };
 }
 

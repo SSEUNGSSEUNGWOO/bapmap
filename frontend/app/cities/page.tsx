@@ -7,6 +7,9 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Explore by City | Bapmap",
   description: "Find the best local restaurants and food spots in Seoul, Gangwon, Gyeonggi, Jeju and more — curated by locals.",
+  alternates: {
+    canonical: "https://bapmap.com/cities",
+  },
 };
 
 const CITY_META: Record<string, { label: string; description: string; emoji: string }> = {

@@ -1,8 +1,19 @@
 import { supabase } from "@/lib/supabase";
 import type { Spot } from "@/lib/supabase";
+import type { Metadata } from "next";
 import HomeClient from "./HomeClient";
 
 export const revalidate = 300;
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "https://bapmap.com",
+    languages: {
+      "en": "https://bapmap.com",
+      "ja": "https://bapmap.com/ja",
+    },
+  },
+};
 
 type Guide = {
   id: string;

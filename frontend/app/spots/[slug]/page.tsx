@@ -62,6 +62,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title,
     description,
+    alternates: {
+      canonical: `https://bapmap.com/spots/${slug}`,
+      languages: {
+        "en": `https://bapmap.com/spots/${slug}`,
+        "ja": `https://bapmap.com/ja/spots/${slug}`,
+      },
+    },
     openGraph: {
       title,
       description,
