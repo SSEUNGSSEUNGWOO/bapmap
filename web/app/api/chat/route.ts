@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
+import { rateLimit, getIp } from "@/lib/rateLimit";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -17,11 +18,19 @@ function needsSpots(query: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  if (!rateLimit(getIp(req), 20, 60_000)) {
+    return new Response("Too many requests", { status: 429 });
+  }
+
   const { messages } = await req.json();
-  if (!messages?.length) return new Response("No messages", { status: 400 });
+  if (!Array.isArray(messages) || !messages.length) return new Response("No messages", { status: 400 });
+  if (messages.length > 20) return new Response("Too many messages", { status: 400 });
 
   const lastUserMessage = [...messages].reverse().find((m: { role: string }) => m.role === "user");
-  const userQuery = lastUserMessage?.content || "";
+  if (!lastUserMessage || typeof lastUserMessage.content !== "string") return new Response("Invalid messages", { status: 400 });
+  if (lastUserMessage.content.length > 500) return new Response("Message too long", { status: 400 });
+
+  const userQuery = lastUserMessage.content;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

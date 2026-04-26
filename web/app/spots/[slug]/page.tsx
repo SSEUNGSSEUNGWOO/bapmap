@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import type { Metadata } from "next";
 import SpotClient from "./SpotClient";
 
@@ -11,15 +12,27 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-async function getSpot(slug: string) {
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
+}
+
+const getSpot = cache(async (slug: string) => {
   const { data: spots } = await supabase
     .from("spots")
-    .select("*")
+    .select("id, english_name, name")
     .eq("status", "업로드완료");
-  return spots?.find((s) => {
-    const s_slug = (s.english_name || s.name).toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
-    return s_slug === slug;
-  }) ?? null;
+  const match = spots?.find((s) => toSlug(s.english_name || s.name) === slug);
+  if (!match) return null;
+  const { data } = await supabase.from("spots").select("*").eq("id", match.id).single();
+  return data ?? null;
+});
+
+export async function generateStaticParams() {
+  const { data: spots } = await supabase
+    .from("spots")
+    .select("english_name, name")
+    .eq("status", "업로드완료");
+  return (spots ?? []).map((s) => ({ slug: toSlug(s.english_name || s.name) }));
 }
 
 async function getNearbySpots(spot: { id: string; lat: number; lng: number }) {

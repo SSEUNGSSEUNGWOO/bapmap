@@ -1,0 +1,72 @@
+[
+  {
+    "domain": ".bluer.co.kr",
+    "expiry": 1811318687,
+    "httpOnly": false,
+    "name": "_ga_HW31PJ6NSL",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": false,
+    "value": "GS2.1.s1776758682$o1$g1$t1776758687$j55$l0$h0"
+  },
+  {
+    "domain": ".bluer.co.kr",
+    "expiry": 1776845087,
+    "httpOnly": false,
+    "name": "_gid",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": false,
+    "value": "GA1.3.1219503267.1776758683"
+  },
+  {
+    "domain": "www.bluer.co.kr",
+    "expiry": 1779350687,
+    "httpOnly": true,
+    "name": "JSESSIONID",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": true,
+    "value": "7F70E72C08F6D5F9B70E7377744252FB"
+  },
+  {
+    "domain": ".bluer.co.kr",
+    "expiry": 1808294688,
+    "httpOnly": false,
+    "name": "ch-veil-id",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": false,
+    "value": "f7de253b-324d-42c5-94c8-9fe47bf71197"
+  },
+  {
+    "domain": ".bluer.co.kr",
+    "expiry": 1776758742,
+    "httpOnly": false,
+    "name": "_gat",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": false,
+    "value": "1"
+  },
+  {
+    "domain": ".bluer.co.kr",
+    "expiry": 1776760488,
+    "httpOnly": false,
+    "name": "ch-session-158561",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": false,
+    "value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzZXMiLCJleHAiOjE3NzkzNTA2ODgsImlhdCI6MTc3Njc1ODY4OCwia2V5IjoiMTU4NTYxLTY5ZTcyZjliMTMzZjIzMDc5ODE4In0.7CjHHDvoXv6lfcJ64lmQ18uzpaz4ssqekaId6sZ0Kk0"
+  },
+  {
+    "domain": ".bluer.co.kr",
+    "expiry": 1811318687,
+    "httpOnly": false,
+    "name": "_ga",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": false,
+    "value": "GA1.3.400354139.1776758683"
+  }
+]

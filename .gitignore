@@ -8,3 +8,6 @@ __pycache__/
 logs/
 PLAN.md
 .claude/
+client_secret*.json
+youtube_token.pickle
+branding/video/output/

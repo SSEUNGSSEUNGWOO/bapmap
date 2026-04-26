@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
+import { rateLimit, getIp } from "@/lib/rateLimit";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -57,8 +58,13 @@ async function searchGuides(embedding: number[], count: number = 3) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!rateLimit(getIp(req), 30, 60_000)) {
+    return new Response("Too many requests", { status: 429 });
+  }
+
   const { query } = await req.json();
   if (!query?.trim()) return new Response("No query", { status: 400 });
+  if (typeof query !== "string" || query.length > 300) return new Response("Query too long", { status: 400 });
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
