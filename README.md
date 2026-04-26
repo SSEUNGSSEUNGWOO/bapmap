@@ -176,34 +176,39 @@ flowchart TD
 
 ```
 Bapmap/
-├── admin.py                      # Streamlit 어드민 앱
-├── requirements.txt
+├── ai-service/                    # Python: admin, pipeline, marketing, branding, memory
+│   ├── admin.py                   # Streamlit 어드민 앱
+│   ├── requirements.txt
+│   ├── pipeline/
+│   │   ├── enrich.py              # Google Places API 데이터 수집
+│   │   ├── generator.py           # Claude로 블로그 포스팅·메타데이터 생성
+│   │   ├── re_enrich.py           # 기존 스팟 데이터 재보강
+│   │   ├── fill_metadata.py       # what_to_order/good_for 일괄 채우기
+│   │   └── rag/
+│   │       ├── embed.py           # OpenAI 임베딩 → Supabase 저장
+│   │       ├── generate_guides.py # 지역별 가이드 생성
+│   │       ├── generate_kculture.py # K-컬쳐 가이드 생성
+│   │       ├── generate_markets.py # 전통시장 가이드 생성
+│   │       └── search.py          # 로컬 RAG 검색 유틸
+│   ├── marketing/                 # Reddit 마케팅 자동화
+│   ├── branding/                  # 블로그·영상 파이프라인
+│   └── memory/                    # 피드백 메모리
 │
-├── pipeline/
-│   ├── enrich.py                 # Google Places API 데이터 수집
-│   ├── generator.py              # Claude로 블로그 포스팅·메타데이터 생성
-│   ├── re_enrich.py              # 기존 스팟 데이터 재보강
-│   ├── fill_metadata.py          # what_to_order/good_for 일괄 채우기
-│   └── rag/
-│       ├── embed.py              # OpenAI 임베딩 → Supabase 저장
-│       ├── generate_guides.py    # 지역별 가이드 생성
-│       ├── generate_kculture.py  # K-컬쳐 가이드 생성
-│       ├── generate_markets.py   # 전통시장 가이드 생성
-│       └── search.py             # 로컬 RAG 검색 유틸
+├── frontend/                      # Next.js 웹사이트
+│   ├── app/
+│   │   ├── page.tsx               # 홈 (최신 스팟 카드)
+│   │   ├── spots/
+│   │   │   ├── page.tsx           # 전체 스팟 목록
+│   │   │   └── [slug]/page.tsx    # 개별 스팟 상세 페이지
+│   │   ├── search/page.tsx        # AI 검색엔진 + 챗봇 드로어
+│   │   ├── map/page.tsx           # Mapbox 지도 뷰
+│   │   └── api/
+│   │       ├── search/route.ts    # 검색 API (RAG + 스트리밍)
+│   │       └── chat/route.ts      # 챗봇 API (RAG + 대화 히스토리)
+│   └── components/
+│       └── Header.tsx
 │
-└── web/                          # Next.js 웹사이트
-    ├── app/
-    │   ├── page.tsx              # 홈 (최신 스팟 카드)
-    │   ├── spots/
-    │   │   ├── page.tsx          # 전체 스팟 목록
-    │   │   └── [slug]/page.tsx   # 개별 스팟 상세 페이지
-    │   ├── search/page.tsx       # AI 검색엔진 + 챗봇 드로어
-    │   ├── map/page.tsx          # Mapbox 지도 뷰
-    │   └── api/
-    │       ├── search/route.ts   # 검색 API (RAG + 스트리밍)
-    │       └── chat/route.ts     # 챗봇 API (RAG + 대화 히스토리)
-    └── components/
-        └── Header.tsx
+└── docs/                          # 추가 문서
 ```
 
 ---
@@ -235,14 +240,14 @@ Bapmap/
 ## 환경 변수
 
 ```env
-# Python (admin + pipeline)
+# Python (ai-service/.env)
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 SUPABASE_URL=
 SUPABASE_SERVICE_KEY=
 GOOGLE_PLACES_API_KEY=
 
-# Next.js (web/.env.local)
+# Next.js (frontend/.env.local)
 ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 NEXT_PUBLIC_SUPABASE_URL=
@@ -256,17 +261,19 @@ NEXT_PUBLIC_MAPBOX_TOKEN=
 
 ```bash
 # 어드민 앱
-pip install -r requirements.txt
+cd ai-service
+uv venv && source .venv/bin/activate
+uv pip install -r requirements.txt
 streamlit run admin.py
 
 # 임베딩 누락분 채우기
-python -m pipeline.rag.embed --missing
+cd ai-service && python -m pipeline.rag.embed --missing
 
 # 지역 가이드 생성
-python -m pipeline.rag.generate_guides
+cd ai-service && python -m pipeline.rag.generate_guides
 
 # 웹 개발 서버
-cd web && npm install && npm run dev
+cd frontend && npm install && npm run dev
 ```
 
 ---

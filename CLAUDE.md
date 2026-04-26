@@ -2,10 +2,23 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 폴더 구조
+
+```
+bapmap/
+├── frontend/        # Next.js 웹사이트
+├── ai-service/      # Python: admin, pipeline, marketing, branding, memory
+├── docs/            # 추가 문서
+├── CLAUDE.md
+└── README.md
+```
+
 ## Commands
 
 ### Python (Admin + Pipeline)
 ```bash
+cd ai-service
+
 # 어드민 UI 실행
 streamlit run admin.py
 
@@ -31,6 +44,8 @@ python -m pipeline.rag.embed --missing
 
 ### 브랜딩
 ```bash
+cd ai-service
+
 # Blue Ribbon 로그인 (쿠키 갱신 필요할 때)
 .venv/bin/python branding/blog/login.py
 
@@ -39,9 +54,9 @@ python3 branding/video/pipeline.py {guide-slug}
 python3 branding/video/upload_youtube.py
 ```
 
-### Next.js (Web)
+### Next.js (Frontend)
 ```bash
-cd web
+cd frontend
 npm run dev      # 개발 서버 (localhost:3000)
 npm run build    # 프로덕션 빌드
 npm run lint     # ESLint
@@ -55,17 +70,17 @@ npm run lint     # ESLint
 
 ```
 [스팟 발행 /spot-publish]
-branding/blog/agents/discover.py   → Blue Ribbon 크롤링 (쿠키 필요)
-branding/blog/agents/ingest.py     → Google Places API → Supabase 저장
-Claude Code                        → 포스팅 작성 → 품질 평가(60점) → 일본어 번역 → 검수
-pipeline/rag/embed_v2.py           → BGE-M3 임베딩 → spot_chunks 테이블
+ai-service/branding/blog/agents/discover.py   → Blue Ribbon 크롤링 (쿠키 필요)
+ai-service/branding/blog/agents/ingest.py     → Google Places API → Supabase 저장
+Claude Code                                   → 포스팅 작성 → 품질 평가(60점) → 일본어 번역 → 검수
+ai-service/pipeline/rag/embed_v2.py           → BGE-M3 임베딩 → spot_chunks 테이블
 
 [가이드 발행 /guide-publish]
 Supabase 미사용 스팟 조회 → Claude Code 클러스터링 → 평가(25점) → 사용자 선택
 → 가이드 본문 작성 → 품질 평가(60점) → 일본어 번역 → 검수 → Supabase 저장
 
 [마케팅 /marketing]
-marketing/scout.py  → Reddit JSON 엔드포인트 크롤링 (API 키 불필요)
+ai-service/marketing/scout.py  → Reddit JSON 엔드포인트 크롤링 (API 키 불필요)
 → SQLite 저장 → Claude Code 적합도 평가 → 댓글 초안 → 검토 → 일일 리포트
 ```
 
@@ -81,19 +96,19 @@ marketing/scout.py  → Reddit JSON 엔드포인트 크롤링 (API 키 불필요
 
 ### 임베딩 이중 전략
 
-- **v1**: `pipeline/rag/embed.py` → OpenAI `text-embedding-3-small` → `spots.embedding` (1536d) — 웹 검색에서 사용
-- **v2**: `pipeline/rag/embed_v2.py` → BGE-M3 → `spot_chunks` — Admin 임베딩 버튼, API 비용 없음
+- **v1**: `ai-service/pipeline/rag/embed.py` → OpenAI `text-embedding-3-small` → `spots.embedding` (1536d) — 웹 검색에서 사용
+- **v2**: `ai-service/pipeline/rag/embed_v2.py` → BGE-M3 → `spot_chunks` — Admin 임베딩 버튼, API 비용 없음
 
 ### 웹 API Routes
 
 | 경로 | 역할 |
 |---|---|
-| `api/search/route.ts` | 쿼리 분류(Haiku) → OpenAI 임베딩 → 하이브리드 검색 → SSE 스트리밍(Haiku) |
-| `api/chat/route.ts` | RAG + 대화 히스토리 챗봇, SSE 스트리밍 |
-| `api/messages/route.ts` | 사용자 문의 저장 |
-| `api/messages/notify/route.ts` | 문의 알림 발송 |
+| `frontend/app/api/search/route.ts` | 쿼리 분류(Haiku) → OpenAI 임베딩 → 하이브리드 검색 → SSE 스트리밍(Haiku) |
+| `frontend/app/api/chat/route.ts` | RAG + 대화 히스토리 챗봇, SSE 스트리밍 |
+| `frontend/app/api/messages/route.ts` | 사용자 문의 저장 |
+| `frontend/app/api/messages/notify/route.ts` | 문의 알림 발송 |
 
-### Admin (admin.py)
+### Admin (ai-service/admin.py)
 
 Streamlit UI. 스팟 목록 조회 (상태/도시 필터), 메모/본문/지역/카테고리/매운맛 편집, 저장, BGE-M3 임베딩 재실행. LLM 호출 없음.
 
@@ -101,32 +116,32 @@ Streamlit UI. 스팟 목록 조회 (상태/도시 필터), 메모/본문/지역/
 
 `status`: `메모필요` → `메모완료` → `업로드완료`
 
-### 마케팅 시스템 (marketing/)
+### 마케팅 시스템 (ai-service/marketing/)
 
-SQLite DB (`marketing/data/bapmap_marketing.db`): opportunities, drafts, feedback, daily_reports 테이블.
-일일 리포트는 `marketing/daily_reports/YYYY-MM-DD.md`로 저장.
-피드백 기록: `python -m marketing.feedback <opp_id> <draft_id> <1/0> [reason]`
+SQLite DB (`ai-service/marketing/data/bapmap_marketing.db`): opportunities, drafts, feedback, daily_reports 테이블.
+일일 리포트는 `ai-service/marketing/daily_reports/YYYY-MM-DD.md`로 저장.
+피드백 기록: `cd ai-service && python -m marketing.feedback <opp_id> <draft_id> <1/0> [reason]`
 
 ### 일본어 버전
 
-`web/app/ja/` 하위에 별도 라우트. 스팟/가이드 일본어 컬럼: `content_ja`, `title_ja`, `subtitle_ja`, `intro_ja`, `body_ja`. `/spot-publish`, `/guide-publish` 커맨드에서 Claude Code가 직접 번역.
+`frontend/app/ja/` 하위에 별도 라우트. 스팟/가이드 일본어 컬럼: `content_ja`, `title_ja`, `subtitle_ja`, `intro_ja`, `body_ja`. `/spot-publish`, `/guide-publish` 커맨드에서 Claude Code가 직접 번역.
 
 ### 영상 파이프라인
 
-`branding/video/`: 1080×1920 YouTube Shorts. FFmpeg + edge-tts. 로컬 전용 (OAuth 제약).
+`ai-service/branding/video/`: 1080×1920 YouTube Shorts. FFmpeg + edge-tts. 로컬 전용 (OAuth 제약).
 `youtube_token.pickle` 최초 1회 브라우저 인증 필요.
 
 ## 환경 변수
 
 ```
-# Python (.env)
+# Python (ai-service/.env)
 ANTHROPIC_API_KEY
 OPENAI_API_KEY
 SUPABASE_URL
 SUPABASE_SERVICE_KEY
 GOOGLE_PLACES_API_KEY
 
-# Next.js (web/.env.local)
+# Next.js (frontend/.env.local)
 ANTHROPIC_API_KEY
 OPENAI_API_KEY
 NEXT_PUBLIC_SUPABASE_URL
