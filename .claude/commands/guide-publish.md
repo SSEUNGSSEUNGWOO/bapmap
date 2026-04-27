@@ -39,25 +39,48 @@ Supabase `spots`에서 `status = '업로드완료'`인 스팟을 모두 조회. 
 
 선택된 클러스터 스팟의 풀 데이터(`name, english_name, category, region, memo, what_to_order, tagline, image_url, subway, price_level, rating`)를 컨텍스트로 본문 작성.
 
+**스팟 수**: 표준은 **4개** (운영 가이드 전부 4개). 3개나 5개도 가능하지만 4개가 기본.
+
 **출력 JSON**:
 ```json
 {
   "slug": "url-friendly-slug",
-  "title": "50-60자 SEO 타겟",
-  "subtitle": "1-2 문장 구체 후크",
-  "category_tag": "K-pop, Bakery, Late-night (1~3개 쉼표 구분)",
-  "intro": "2-3 문장. 왜 이 가이드인지, 스팟들의 공통점",
-  "body": "마크다운 본문, [spot:English Name] 마커로 스팟 위치 표시"
+  "title": "30-75자, 후크가 있는 제목 (SEO+GEO 키워드 포함)",
+  "subtitle": "60-160자, 가이드의 구체적 핵심을 한 줄에 요약",
+  "category_tag": "Korean BBQ, K-pop, Late Night (1~3개, 쉼표+공백 구분)",
+  "intro": "100-500자, 1~3문단. 왜 이 가이드인지, 스팟들이 묶이는 이유, 살짝 자극적인 후크",
+  "body": "마크다운 본문, [spot:English Name] 마커 + 그 아래 한 단락(150-250자) per spot"
 }
 ```
 
-**본문 규칙**:
-- 서울 사는 친구가 카톡으로 귀띔하는 톤
-- 각 `[spot:Name]` 직전 3~4문장 맥락 (왜 여기인지, 뭘 시키는지, 가격, 솔직한 단점)
-- 마지막 단락: 실무 팁 (예약, 시간대, 동선)
-- 한국인이 실제로 가는 로컬 맛집을 외국 관광객에게 소개하는 컨셉
+**본문 길이 가이드 (실제 운영 평균)**:
+- body: 영문 **2,000~3,500자** (1,400자 미만은 빈약, 3,500자 초과는 산만)
+- body_ja: 일본어 **800~1,800자**
 
-**금지어/구조**: spot-publish 와 동일 (`hidden gem`, `must-try`, FAQ 박스, "Whether you're..." 등)
+**본문 구조** (실제 발행 패턴):
+```
+[spot:Name1]
+
+[150~250자, 자연스러운 한 단락]
+- 첫 줄: 왜 이 동네에서 이곳인지 (특이점/배경)
+- 메뉴 + 가격 (한글 병기 가능)
+- 솔직한 단점 또는 운영 팁 1개
+
+[spot:Name2]
+... (반복)
+
+[spot:Name4]
+
+[마지막 단락은 outro 역할 — 별도 헤더 없이 운영 팁 자연스럽게 녹임]
+```
+
+**톤 규칙**:
+- 서울 사는 친구가 카톡으로 귀띔하는 톤
+- "Itaewon Is Over", "Where Locals Actually Eat" 같은 강한 후크 환영
+- 한국인이 실제로 가는 로컬 맛집을 외국 관광객에게 소개하는 컨셉
+- 단점은 솔직하지만 비난조 X ("the wait regularly hits 2 hours" 식)
+
+**금지어/구조**: spot-publish 와 동일 (`hidden gem`, `must-try`, FAQ 박스, "Whether you're..." 등). 단 가이드 본문은 자연스러운 산문이라 "in the best and most literal sense" 같은 미묘한 변형은 컨텍스트 보고 판단 (직접 금지어 매칭만 hard rule).
 
 ---
 
@@ -65,12 +88,13 @@ Supabase `spots`에서 `status = '업로드완료'`인 스팟을 모두 조회. 
 
 ### 하드룰 — 하나라도 위반하면 즉시 재작성
 
-- [ ] **금지어 0개**: `nestled`, `bustling`, `hidden gem`, `must-try`, `culinary journey`, `food lovers`, `vibrant`, `authentic experience`, `in the best way`, `rounds things out`, `doesn't disappoint`
-- [ ] **금지 구조 0개**: FAQ 박스 / Quick Facts 테이블 / "Whether you're..." 시작 / 일반장려문
-- [ ] 각 `[spot:Name]` 직전 3~4문장 맥락 (왜 여기 / 뭘 시키는지 / 가격 / 솔직한 단점 중 다수 포함)
-- [ ] 마지막 단락에 실무 팁 (예약 / 시간대 / 동선 중 ≥1개)
+- [ ] **금지어 0개** (정확 매칭만 hard rule): `nestled`, `bustling`, `hidden gem`, `must-try`, `culinary journey`, `food lovers`, `vibrant`, `authentic experience`, `in the best way`, `rounds things out`, `doesn't disappoint`
+- [ ] **금지 구조 0개**: FAQ 박스 / "Whether you're..." 시작 / 일반장려문 ("You won't regret it" 등)
+- [ ] 각 `[spot:Name]` 아래 한 단락(150자+)에 왜/뭘 시키는지/가격/단점 중 ≥3개 포함
+- [ ] 마지막 단락 또는 마지막 spot 단락에 실무 팁 (예약 / 시간대 / 동선 / 매진 중 ≥1개)
 - [ ] 스팟 간 차이가 본문에서 명확 (같은 톤의 추천 반복 X)
-- [ ] Title 길이 50~60자
+- [ ] Title 길이 30~75자
+- [ ] body 길이 1,400자 이상
 
 ### 4축 5점 채점 — 만점 20, 통과 15
 
@@ -119,9 +143,33 @@ status = 'draft'
 
 ---
 
+## 7단계 — OpenAI 임베딩 (검색용)
+
+가이드 저장 후 임베딩 생성. `search_guides` RPC가 frontend `/api/search`, `/api/chat`에서 호출되므로 필수.
+
+```bash
+cd /Users/sseung/Projects/personal/bapmap/ai-service
+.venv/bin/python -m pipeline.rag.embed_guides --slugs <new-slug>
+```
+
+`title + subtitle + category_tag + intro + body` 합쳐서 OpenAI `text-embedding-3-small` (1536d) → `guides.embedding` 저장.
+
+### 모드 정리
+
+| 명령 | 동작 |
+|---|---|
+| (인자 없음) | embedding이 null인 가이드만 (incremental) |
+| `--slugs slug1,slug2` | 지정 가이드만 재임베딩 |
+| `--rebuild-all` | 모든 가이드 재임베딩 (덮어쓰기, 안전 — 컬럼 update만이라 데이터 유실 위험 없음) |
+
+draft 상태도 임베딩은 생성 (RPC가 `status='published'`로 필터). 추후 published로 바꿀 때 별도 임베딩 불필요.
+
+---
+
 ## 마무리 보고
 
 - 가이드 slug, 테마, 포함 스팟 수
 - 평가 점수 (재작성 횟수)
 - Supabase 저장 status (draft / published)
+- 임베딩 생성 여부
 - frontend URL: `https://bapmap.com/guides/{slug}` 와 일본어판 `/ja/guides/{slug}`
