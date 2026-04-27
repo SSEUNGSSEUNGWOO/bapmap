@@ -122,9 +122,51 @@ def embed_spot(spot: dict, cap: int = DEFAULT_CAP) -> bool:
     return True
 
 
-def run(cap: int):
-    spots = sb.table("spots").select("*").execute().data
-    print(f"스팟 {len(spots)}개 로드, 토큰 cap: {cap}")
+def _load_target_spots(mode: str, spot_ids: list[str] | None) -> list[dict]:
+    """모드별로 대상 spots 로드.
+    - mode="missing": spot_chunks에 아직 없는 spots만
+    - mode="ids": 주어진 spot_ids 만
+    - mode="all": 전체 spots
+    """
+    if mode == "ids":
+        if not spot_ids:
+            return []
+        return sb.table("spots").select("*").in_("id", spot_ids).execute().data
+
+    all_spots = sb.table("spots").select("*").execute().data
+
+    if mode == "all":
+        return all_spots
+
+    # mode == "missing"
+    existing = sb.table("spot_chunks").select("spot_id").execute().data
+    embedded_ids = {row["spot_id"] for row in existing}
+    return [s for s in all_spots if s["id"] not in embedded_ids]
+
+
+def _embed_and_upsert(chunks: list[dict]) -> None:
+    """청크들을 배치로 임베딩하고, spot_id별 delete-then-insert로 안전하게 저장."""
+    total = len(chunks)
+    for i in range(0, total, BATCH_SIZE):
+        batch = chunks[i:i + BATCH_SIZE]
+        texts = [c["content"] for c in batch]
+        embeddings = embed_batch(texts)
+
+        for c, emb in zip(batch, embeddings):
+            sb.table("spot_chunks").delete().eq("spot_id", c["spot_id"]).execute()
+            sb.table("spot_chunks").insert({
+                "spot_id": c["spot_id"],
+                "chunk_type": c["chunk_type"],
+                "content": c["content"],
+                "embedding": emb,
+            }).execute()
+
+        print(f"  [{i + len(batch)}/{total}]")
+
+
+def run(cap: int, mode: str = "missing", spot_ids: list[str] | None = None):
+    spots = _load_target_spots(mode, spot_ids)
+    print(f"모드: {mode} | 대상 스팟 {len(spots)}개 | 토큰 cap: {cap}")
 
     chunks = []
     for spot in spots:
@@ -134,35 +176,41 @@ def run(cap: int):
     print(f"청크 {len(chunks)}개 생성")
 
     if not chunks:
+        print("처리할 청크 없음. 종료.")
         return
 
-    print("기존 spot_chunks 삭제...")
-    sb.table("spot_chunks").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+    if mode == "all":
+        # 전체 재구축: 명시적 confirm 후 전체 삭제 → 전체 재임베딩
+        print("⚠️  --rebuild-all: 기존 spot_chunks 전체 삭제 → 전체 재임베딩")
+        sb.table("spot_chunks").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
 
-    total = len(chunks)
-    for i in range(0, total, BATCH_SIZE):
-        batch = chunks[i:i + BATCH_SIZE]
-        texts = [c["content"] for c in batch]
-        embeddings = embed_batch(texts)
-
-        rows = []
-        for c, emb in zip(batch, embeddings):
-            rows.append({
-                "spot_id": c["spot_id"],
-                "chunk_type": c["chunk_type"],
-                "content": c["content"],
-                "embedding": emb,
-            })
-
-        sb.table("spot_chunks").insert(rows).execute()
-        print(f"  [{i + len(batch)}/{total}]")
-
-    print(f"\n완료: {total}개 청크 (cap={cap})")
+    _embed_and_upsert(chunks)
+    print(f"\n완료: {len(chunks)}개 청크 (cap={cap}, mode={mode})")
 
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="BGE-M3 임베딩. 기본은 incremental(누락분만). 안전을 위해 전체 재구축은 명시 플래그 필요."
+    )
     parser.add_argument("--cap", type=int, default=DEFAULT_CAP)
+    parser.add_argument(
+        "--spot-ids",
+        type=str,
+        default=None,
+        help="콤마로 구분된 spot_id 들만 재임베딩 (delete-then-insert per id)",
+    )
+    parser.add_argument(
+        "--rebuild-all",
+        action="store_true",
+        help="⚠️  전체 spot_chunks 삭제 후 전체 재임베딩. 사용 전 데이터 백업 권장.",
+    )
     args = parser.parse_args()
-    run(args.cap)
+
+    if args.spot_ids:
+        ids = [s.strip() for s in args.spot_ids.split(",") if s.strip()]
+        run(args.cap, mode="ids", spot_ids=ids)
+    elif args.rebuild_all:
+        run(args.cap, mode="all")
+    else:
+        run(args.cap, mode="missing")

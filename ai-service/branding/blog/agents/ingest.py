@@ -44,6 +44,7 @@ CATEGORY_MAP = {
     "bar": "Bar",
     "wine_bar": "Bar",
     "chicken_wings_restaurant": "Chicken",
+    "chicken_restaurant": "Korean",
     "restaurant": "Korean",
 }
 
@@ -65,7 +66,8 @@ ALLOWED_TYPES = {
     "french_restaurant", "american_restaurant", "hamburger_restaurant",
     "fast_food_restaurant", "thai_restaurant", "vietnamese_restaurant",
     "seafood_restaurant", "cafe", "bakery", "coffee_shop", "bar",
-    "wine_bar", "chicken_wings_restaurant", "meal_takeaway", "meal_delivery",
+    "wine_bar", "chicken_wings_restaurant", "chicken_restaurant",
+    "meal_takeaway", "meal_delivery",
     "steak_house", "sandwich_shop", "dessert_restaurant", "ice_cream_shop",
     "brunch_restaurant", "breakfast_restaurant",
 }
@@ -199,13 +201,23 @@ def _korean_to_english(name: str) -> str:
     from anthropic import Anthropic
     res = Anthropic().messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=50,
+        max_tokens=80,
         messages=[{"role": "user", "content": (
-            f"Convert this Korean restaurant name to a natural English name. "
-            f"Return only the English name, nothing else: {name}"
+            "Convert this Korean restaurant name to a natural English name "
+            "for an English-language restaurant guide.\n\n"
+            "Rules:\n"
+            "- Use Revised Romanization with proper word spacing (e.g. \"학익궁중삼계탕\" → \"Hagik Royal Samgyetang\", "
+            "not \"hagig gungjungsamgyetang\").\n"
+            "- Capitalize each meaningful word (Title Case).\n"
+            "- Translate descriptive parts when natural (궁중→Royal, 본점→Main, 2호점→2nd Branch, 신촌점→Sinchon Branch).\n"
+            "- Put branch info in parentheses: \"물고기(2호점)\" → \"Mulgogi (2nd Branch)\", "
+            "\"고규(송도본점)\" → \"Gogyu (Songdo Main)\".\n"
+            "- Drop redundant generics like \"식당\", \"집\" unless needed for clarity.\n"
+            "- Return ONLY the English name, no quotes or explanation.\n\n"
+            f"Korean name: {name}"
         )}],
     )
-    return res.content[0].text.strip()
+    return res.content[0].text.strip().strip('"').strip("'")
 
 
 def _to_slug(name: str) -> str:

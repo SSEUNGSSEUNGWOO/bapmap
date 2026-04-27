@@ -6,3 +6,5 @@ supabase
 markdown
 openai
 unidecode
+selenium
+sentence-transformers

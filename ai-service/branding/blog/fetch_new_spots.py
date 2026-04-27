@@ -18,11 +18,6 @@ def main():
     parser.add_argument("--max-spots", type=int, default=5)
     args = parser.parse_args()
 
-    # _korean_to_english을 unidecode로 대체 (Anthropic API 호출 없이)
-    import branding.blog.agents.ingest as ingest_module
-    from unidecode import unidecode
-    ingest_module._korean_to_english = lambda name: unidecode(name).strip()
-
     from branding.blog.agents.discover import discover
     from branding.blog.agents.ingest import ingest
     from supabase import create_client
