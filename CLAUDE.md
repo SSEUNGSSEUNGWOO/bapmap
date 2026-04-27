@@ -157,5 +157,8 @@ NEXT_PUBLIC_MAPBOX_TOKEN
 
 ### 품질 평가 기준 (spot-publish / guide-publish 공통)
 
-6개 항목 × 10점 = 60점 만점. **통과 기준: 48점**
-`Title / Specificity / Human voice / Usefulness / SEO / GEO`
+**하드룰 + 4축 5점 (만점 20, 통과 15)**
+
+- 하드룰: 금지어 / 금지 구조 / 필수 정보 누락 — 하나라도 위반 시 자동 재작성
+- 4축: `Specificity / Voice / Usefulness / Findability` (Findability = SEO+GEO 통합)
+- 상세 기준은 각 슬래시 커맨드 본문 참조
