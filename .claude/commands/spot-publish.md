@@ -41,7 +41,11 @@ Google Places가 주는 정보는 부족하다 (가격 없음, 지하철 거리 
 - 영업시간 (Google `hours`가 비어있으면 다이닝코드에서)
 - 휴무일
 
-검증 못 하면 사용자에게 "가격 정보 부족 — A) 추정 / B) 검색 / C) 가격대만"으로 결정 받기.
+**가격 검증 실패 시 정책 (자동)**: 사용자에게 매번 묻지 말고 자동으로 **C) 가격대만** 처리한다.
+- `Practical Info`의 `Price range`는 `Budget / Mid-range / Upscale / Luxury` 중 적절한 값으로 (Google `price_level` 또는 카테고리/지역 기반 합리적 추정).
+- `What to Order` 섹션에서는 **가격 검증 못 한 메뉴는 가격을 표기하지 않거나 메뉴 자체를 뺀다** (절대 추정 가격을 ₩숫자로 박지 않는다).
+- 단, 시그니처 메뉴 ≥ 2개에서 가격 표기가 불가능하면, 메뉴 설명만 살리고 본문 흐름에서 "menu prices aren't published online — expect mid-range pricing" 같은 문장으로 자연스럽게 처리.
+- 가격 검증 실패한 스팟은 마지막 마무리 보고에 모아서 보고한다 (재방문 검증 대상).
 
 ---
 
@@ -134,7 +138,7 @@ Google Places가 주는 정보는 부족하다 (가격 없음, 지하철 거리 
 - [ ] **금지어 0개**: `nestled`, `bustling`, `hidden gem`, `must-try`, `culinary journey`, `food lovers`, `vibrant`, `authentic experience`, `in the best way`, `rounds things out`, `doesn't disappoint`
 - [ ] **금지 구조 0개**: FAQ 박스 / "Whether you're..." 시작 / 일반장려문 ("You won't regret it", "Don't miss it" 등)
   - ✅ Summary 테이블은 정식 형식 (필수)
-- [ ] 시그니처 메뉴 ≥ 2개 + 가격 명시
+- [ ] 시그니처 메뉴 ≥ 2개 (가격 검증 가능한 경우 가격 명시. 검증 불가 시 메뉴 디테일은 살리되 가격은 비우고 `Price range`로 대체)
 - [ ] 도보 시간 또는 지하철 출구 정보 명시 (먼 경우 택시 거리)
 - [ ] 솔직한 단점 1개 이상
 - [ ] H1 길이 50~70자
@@ -231,5 +235,6 @@ cd /Users/sseung/Projects/personal/bapmap/ai-service
 - 발굴된 신규 스팟 수
 - 발행 완료 스팟 수 (영문 + 일본어 + 부가 컬럼)
 - 평가 미달로 빠진 스팟 (있으면 사유)
+- **가격 검증 실패 → C(가격대만) 처리한 스팟 목록** (있으면)
 - 임베딩된 chunk 수
 - 사이드 변경사항 (영문명 수정, hours/subway 보충, requirements.txt 등)

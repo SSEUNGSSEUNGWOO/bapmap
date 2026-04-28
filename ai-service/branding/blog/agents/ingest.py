@@ -198,26 +198,10 @@ def _is_korean(text: str) -> bool:
 
 
 def _korean_to_english(name: str) -> str:
-    from anthropic import Anthropic
-    res = Anthropic().messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=80,
-        messages=[{"role": "user", "content": (
-            "Convert this Korean restaurant name to a natural English name "
-            "for an English-language restaurant guide.\n\n"
-            "Rules:\n"
-            "- Use Revised Romanization with proper word spacing (e.g. \"학익궁중삼계탕\" → \"Hagik Royal Samgyetang\", "
-            "not \"hagig gungjungsamgyetang\").\n"
-            "- Capitalize each meaningful word (Title Case).\n"
-            "- Translate descriptive parts when natural (궁중→Royal, 본점→Main, 2호점→2nd Branch, 신촌점→Sinchon Branch).\n"
-            "- Put branch info in parentheses: \"물고기(2호점)\" → \"Mulgogi (2nd Branch)\", "
-            "\"고규(송도본점)\" → \"Gogyu (Songdo Main)\".\n"
-            "- Drop redundant generics like \"식당\", \"집\" unless needed for clarity.\n"
-            "- Return ONLY the English name, no quotes or explanation.\n\n"
-            f"Korean name: {name}"
-        )}],
-    )
-    return res.content[0].text.strip().strip('"').strip("'")
+    # 음역만 빠르게. 자연스러운 영문명 보정은 발행 단계에서 Claude Code(CLI)가 수동으로 UPDATE.
+    s = unidecode(name)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s.title()
 
 
 def _to_slug(name: str) -> str:
