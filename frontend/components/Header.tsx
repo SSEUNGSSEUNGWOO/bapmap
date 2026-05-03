@@ -39,7 +39,7 @@ export default function Header() {
     setMenuOpen(false);
   }, [pathname]);
 
-  const transparent = isHome && !scrolled && !menuOpen;
+  const transparent = false;
 
   return (
     <header
