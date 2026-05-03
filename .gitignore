@@ -12,3 +12,4 @@ PLAN.md
 client_secret*.json
 youtube_token.pickle
 ai-service/branding/video/output/
+ai-service/branding/blog/bluer_cookies.json
