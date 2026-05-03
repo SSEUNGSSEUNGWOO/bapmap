@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useLang } from "@/lib/LanguageContext";
@@ -54,18 +53,38 @@ export default function Header() {
     >
       <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href={p("/")} className="flex items-center no-underline">
-          <Image
-            src="/logo.svg"
-            alt="Bapmap"
-            width={120}
-            height={37}
+        <Link href={p("/")} aria-label="Bapmap" className="flex items-center gap-2 no-underline">
+          <svg viewBox="0 0 96 110" width={28} height={32} aria-hidden="true" style={{ flexShrink: 0 }}>
+            <path
+              d="M 38 14 C 38 26, 58 32, 58 44 C 58 56, 38 62, 38 74"
+              stroke={transparent ? "#fff" : "#D97020"}
+              strokeWidth={4.5}
+              fill="none"
+              strokeLinecap="round"
+              style={{ transition: "stroke 0.5s ease" }}
+            />
+            <path
+              d="M 18 92 Q 48 104 78 92"
+              stroke={transparent ? "#fff" : "#7A3000"}
+              strokeWidth={4.5}
+              fill="none"
+              strokeLinecap="round"
+              style={{ transition: "stroke 0.5s ease" }}
+            />
+          </svg>
+          <span
             style={{
-              objectFit: "contain",
-              filter: transparent ? "brightness(0) invert(1)" : "none",
-              transition: "filter 0.5s ease",
+              fontFamily: "var(--font-playfair), Georgia, serif",
+              fontWeight: 700,
+              fontSize: "1.5rem",
+              letterSpacing: "-0.01em",
+              lineHeight: 1,
+              color: transparent ? "#fff" : "#7A3000",
+              transition: "color 0.5s ease",
             }}
-          />
+          >
+            bapmap
+          </span>
         </Link>
 
         {/* Desktop Nav */}

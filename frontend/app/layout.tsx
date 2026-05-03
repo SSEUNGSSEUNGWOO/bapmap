@@ -11,10 +11,6 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfa
 const sourceSans = Source_Sans_3({ subsets: ["latin"], variable: "--font-source", weight: ["300","400","600"] });
 
 export const metadata: Metadata = {
-  icons: {
-    icon: "/favicon.png",
-    apple: "/favicon.png",
-  },
   title: "Bapmap — Eat where Koreans actually eat",
   description: "Local Korean restaurant guide for travelers. Real spots, honest picks. No tourist traps.",
   metadataBase: new URL("https://bapmap.com"),
